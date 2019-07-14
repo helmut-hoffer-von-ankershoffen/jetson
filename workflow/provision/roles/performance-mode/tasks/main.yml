@@ -1,0 +1,11 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+      - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Install packages"
+  shell: nvpmodel -m {{ nv.performance.mode }}
+
+

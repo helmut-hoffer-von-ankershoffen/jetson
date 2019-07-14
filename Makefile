@@ -1,0 +1,159 @@
+.DEFAULT_GOAL := help
+SHELL := /bin/bash
+
+
+help: ## This help panel.
+	@IFS=$$'\n' ; \
+	help_lines=(`fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##/:/'`); \
+	printf "%-30s %s\n" "DevOps console for Project Jetson" ; \
+	printf "%-30s %s\n" "==================================" ; \
+	printf "%-30s %s\n" "" ; \
+	printf "%-30s %s\n" "Target" "Help" ; \
+	printf "%-30s %s\n" "------" "----" ; \
+	for help_line in $${help_lines[@]}; do \
+        IFS=$$':' ; \
+        help_split=($$help_line) ; \
+        help_command=`echo $${help_split[0]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
+        help_info=`echo $${help_split[2]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
+        printf '\033[36m'; \
+        printf "%-30s %s" $$help_command ; \
+        printf '\033[0m'; \
+        printf "%s\n" $$help_info; \
+    done
+
+%:      # thanks to chakrit
+	@:    # thanks to Wi.lliam Pursell
+
+
+bootstrap-environment: requirements bootstrap-environment-message ## Bootstrap development environment!
+
+requirements: requirements-bootstrap ## Install requirements on workstation
+
+requirements-bootstrap: ## Prepare basic packages on workstation
+	workflow/requirements/macOS/bootstrap
+	source ~/.bash_profile && rbenv install --skip-existing 2.2.
+	source ~/.bash_profile && ansible-galaxy install -r workflow/requirements/macOS/ansible/requirements.yml
+	ansible-playbook -i "localhost," workflow/requirements/generic/ansible/playbook.yml --tags "hosts" --ask-become-pass
+	source ~/.bash_profile && ansible-playbook -i "localhost," workflow/requirements/macOS/ansible/playbook.yml --ask-become-pass
+	source ~/.bash_profile && $(SHELL) -c 'cd workflow/requirements/macOS/docker; . ./daemon_check.sh'
+
+requirements-docker: ## Prepare Docker on workstation
+	source ~/.bash_profile && $(SHELL) -c 'cd workflow/requirements/macOS/docker; . ./daemon_check.sh'
+
+requirements-hosts: ## Prepare /etc/hosts on workstation
+	ansible-playbook -i "localhost," workflow/requirements/generic/ansible/playbook.yml --tags "hosts" --ask-become-pass
+
+requirements-packages: ## Install packages on workstation
+	ansible-playbook -i "localhost," workflow/requirements/macOS/ansible/playbook.yml --ask-become-pass
+
+requirements-ansible: ## Install ansible requirements on workstation for provisioning jetson
+	ansible-galaxy install -r workflow/provision/requirements.yml
+
+bootstrap-environment-message: ## Echo a message that the app installation is happening now
+	@echo ""
+	@echo ""
+	@echo "Welcome!"
+	@echo ""
+	@echo "1) Please follow the instructions to fully install and start Docker - Docker started up when its Icon ("the whale") is no longer moving."
+	@echo ""
+	@echo "2) Click on the Docker icon, goto Preferences / Advanced, set Memory to at least 4GiB and click Apply & Restart."
+	@echo ""
+	@echo ""
+
+
+image-download: ## Download Nvidia Jetpack into workflow/provision/image
+	cd workflow/provision/image && wget -N -O jetson-nano-sd.zip https://developer.nvidia.com/embedded/dlc/jetson-nano-dev-kit-sd-card-image && unzip -o *.zip && rm -f jetson-nano-sd.zip
+
+setup-access-secure: ## Allow passwordless ssh and sudo, disallow ssh with password
+	ssh-copy-id -i ~/.ssh/id_rsa admin@nano-one.local
+	cd workflow/provision && ansible-playbook main.yml --tags "access_secure" -b -K
+
+
+provision: ## Provision the Nvidia Jetson Nano
+	cd workflow/provision && ansible-playbook main.yml --tags "provision"
+
+provision-base: ## Provision base
+	cd workflow/provision && ansible-playbook main.yml --tags "base"
+
+provision-kernel: ## Compile custom kernel for docker - takes ca. 60 minutes
+	cd workflow/provision && ansible-playbook main.yml --tags "kernel"
+
+provision-firewall: ## Provision firewall
+	cd workflow/provision && ansible-playbook main.yml --tags "firewall"
+
+provision-lxde: ## Provision LXDE
+	cd workflow/provision && ansible-playbook main.yml --tags "lxde"
+
+provision-vnc: ## Provision VNC
+	cd workflow/provision && ansible-playbook main.yml --tags "vnc"
+
+provision-xrdp: ## Provision XRDP
+	cd workflow/provision && ansible-playbook main.yml --tags "xrdp"
+
+provision-k8s: ## Provision Kubernetes
+	cd workflow/provision && ansible-playbook main.yml --tags "k8s"
+
+provision-build: ## Provision build environment
+	cd workflow/provision && ansible-playbook main.yml --tags "build"
+
+provision-swap: ## Provision swap
+	cd workflow/provision && ansible-playbook main.yml --tags "swap"
+
+provision-performance-mode: ## Set performace mode
+	cd workflow/provision && ansible-playbook main.yml --tags "performance_mode"
+
+nano-one-ssh: ## ssh to nano-one as user admin
+	ssh admin@nano-one.local
+
+nano-one-ssh-build: ## ssh to nano-one as user build
+	ssh build@nano-one.local
+
+nano-one-exec: ## exec command on nano-one - you must pass in arguments e.g. tegrastats
+	ssh build@nano-one.local $(filter-out $@,$(MAKECMDGOALS))
+
+
+k8s-proxy: ## Open proxy
+	kubectl proxy
+
+k8s-dashboard-bearer-token-show: ## Show dashboard bearer token
+	workflow/k8s/dashboard-bearer-token-show
+
+k8s-dashboard-open: ## Open Dashboard
+	python -mwebbrowser http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/overview?namespace=default
+
+
+device-query-deploy: device-query-build-and-push ## Build and deploy device query
+	kubectl create namespace jetson-device-query || true
+	cd workflow/deploy/device-query && skaffold run
+
+device-query-log-show: ## Show log of pod
+	cd workflow/deploy/device-query && ./log-show
+
+device-query-delete: ## Delete device query deployment
+	kubectl delete namespace jetson-device-query || true
+	cd workflow/deploy/device-query && skaffold delete
+
+device-query-dev: ## Enter build, deploy, tail, watch cycle for device query
+	kubectl create namespace jetson-device-query || true
+	cd workflow/deploy/device-query && skaffold dev
+
+
+jupyter-deploy: jupyter-build-and-push ## Build and deploy jupyter
+	kubectl create namespace jetson-jupyter || true
+	kubectl create secret generic jupyter.polarize.ai --from-file workflow/deploy/jupyter/.basic-auth --namespace=jetson-jupyter || true
+	cd workflow/deploy/jupyter && skaffold run
+
+jupyter-open: ## Open browser pointing to jupyter notebook
+	python -mwebbrowser http://jupyter.nano-one.local/
+
+jupyter-log-show: ## Show log of pod
+	cd workflow/deploy/jupyter && ./log-show
+
+jupyter-delete: ## Delete jupyter deployment
+	kubectl delete namespace jetson-jupyter || true
+	cd workflow/deploy/jupyter && skaffold delete
+
+jupyter-dev: ## Enter build, deploy, tail, watch cycle for jupyter
+	kubectl create namespace jetson-jupyter || true
+	kubectl create secret generic jupyter.polarize.ai --from-file workflow/deploy/jupyter/.basic-auth --namespace=jetson-jupyter || true
+	cd workflow/deploy/jupyter && skaffold dev

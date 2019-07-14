@@ -1,0 +1,55 @@
+---
+
+homebrew_taps:
+  - homebrew/core
+  - homebrew/services
+
+homebrew_installed_packages:
+  - bash-completion
+  - composer
+  - ctop
+  - curl
+  - git
+  - gpg
+  - node
+  - npm
+  - pkg-config
+  - python
+  - python3
+  - python@2
+  - rsync
+  - skaffold
+  - slackcat
+  - telnet
+  - wget
+  - rust
+
+homebrew_cask_appdir: /Applications
+
+homebrew_cask_apps:
+  - docker                          # Docker container runtime
+  - sublime-text                    # Simple graphical editor
+  - google-chrome                   # Common web browser
+  - github                          # UI for git/GitHub
+  - balenaetcher                    # Flash tool
+  - vnc-viewer                      # Real VNC client
+  - microsoft-remote-desktop-beta   # Microsoft RDP client
+  - anaconda                        # Python/R data science platform
+
+composer_packages: []
+
+gem_packages:
+  - name: bundler
+  - name: docker-sync
+
+npm_packages: []
+
+pip_packages:
+  - name: kube-shell
+
+pear_packages: []
+
+cargo_packages:
+  - name: click
+
+download_executables: []

@@ -1,0 +1,6 @@
+{
+  "experimental" : true,
+  "insecure-registries" : [
+    "max-one.local:5001"
+  ]
+}

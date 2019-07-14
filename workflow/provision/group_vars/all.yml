@@ -1,0 +1,25 @@
+---
+
+access_secure:
+  ssh_identity: "~/.ssh/id_rsa.pub"
+
+vnc:
+  password: secret
+
+kubernetes:
+  token: p76cc9.j7s7nt7uvpj3uhy2
+  podnet: 10.244.0.0/16
+  version: "v1.14.2"
+  package_version: "1.14.2-00"
+  master_host: "12.0.0.101"
+
+swap_file_path: /swapfile
+swap_file_size_mb: '8192'
+swap_swappiness: '60'
+swap_file_state: present
+swap_file_create_command: "dd if=/dev/zero of={{ swap_file_path }} bs=1M count={{ swap_file_size_mb }}"
+swap_test_mode: false
+
+nv:
+  performance:
+    mode: 0

@@ -1,0 +1,36 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+    - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Install prerequisites"
+  apt:
+    state: latest
+    pkg:
+      - rsync
+
+- name: "Setup build user and assign to groups"
+  user:
+    name: 'build'
+    shell: '/bin/bash'
+    groups:
+      - docker
+      - admin
+      - sudo
+    append: yes
+    comment: 'managed by ansible'
+
+- name: "Upload authorized keys for shop user"
+  authorized_key:
+    user: 'build'
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+- name: "Ensure private registry hostname in /etc/hosts"
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '12\.0\.0\.101.+$'
+    line: "12.0.0.101 max-one max-one.local"
+    state: present
+  become: true

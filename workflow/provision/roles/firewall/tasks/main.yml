@@ -1,0 +1,59 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+      - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Install packages"
+  apt:
+    state: latest
+    pkg:
+      - ufw
+  register: install
+
+# Make sure you have Ansible >= 2.7.11 installed. Use `brew upgrade ansible` if not
+# See https://github.com/ansible/ansible/issues/53854
+# Installation defaults is allow all incoming and outgoing but blocking IP forwarding
+
+- name: "Reset firewall rules to installation defaults which is disabled"
+  ufw:
+    state: reset
+
+- name: "Activate logging"
+  ufw:
+    logging: yes
+
+- name: "Allow SSH"
+  ufw:
+    direction: in
+    port: ssh
+    proto: tcp
+    rule: allow
+    state: enabled
+
+- name: "Allow IGMP"
+  ufw:
+    proto: igmp
+    rule: allow
+    state: enabled
+
+- name: "Set defaults to deny all incoming"
+  ufw:
+    direction: incoming
+    default: deny
+    state: enabled
+
+- name: "Set defaults to allow all outgoing"
+  ufw:
+    direction: outgoing
+    default: allow
+    state: enabled
+
+- name: "Set defaults to allow IP forwarding"
+  ufw:
+    route: yes
+    direction: routed
+    default: allow
+    state: enabled
+

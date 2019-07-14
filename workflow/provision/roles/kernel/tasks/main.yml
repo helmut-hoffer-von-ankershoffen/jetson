@@ -1,0 +1,85 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+    - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Install packages"
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - libncurses5-dev
+  register: packages
+
+- name: "Download public sources"
+  uri:
+    url: https://developer.download.nvidia.com/embedded/L4T/r32_Release_v1.0/jetson-nano/BSP/Jetson-Nano-public_sources.tbz2
+    dest: ~root/Jetson-Nano-public_sources.tbz2
+    status-code: 200
+
+- name: "Extract kernel source archive"
+  shell: cd ~root && tar xf ~root/Jetson-Nano-public_sources.tbz2 public_sources/kernel_src.tbz2
+  args:
+    warn: false
+
+- name: "Remove download"
+  file:
+    name: ~root/Jetson-Nano-public_sources.tbz2
+    state: absent
+
+- name: "Move kernel source archive"
+  shell: mv ~root/public_sources/kernel_src.tbz2 ~root/
+
+- name: "Remove other sources"
+  file:
+    name: ~root/public_sources
+    state: absent
+
+- name: "Unarchive kernel source"
+  shell: cd ~root && tar xf ~root/kernel_src.tbz2
+  args:
+    warn: false
+
+- name: "Remove kernel source archive"
+  file:
+    name: ~root/kernel_src.tbz2
+    state: absent
+
+- name: "Insert custom kernel configuration"
+  copy:
+    src: .config
+    dest: ~root/kernel/kernel-4.9/.config
+    mode: "0644"
+
+- name: "Build kernel and modules"
+  shell: cd ~root/kernel/kernel-4.9 && make prepare && make modules_prepare && make -j5 Image && make -j5 modules
+
+- name: "Install kernel and modules"
+  shell: cd ~root/kernel/kernel-4.9 && make modules_install && cp -f arch/arm64/boot/Image /boot/Image
+  register: install
+
+- name: "Remove kernel source"
+  file:
+    name: "{{ item }}"
+    state: absent
+  with_items:
+    - ~root/kernel
+    - ~root/hardware
+
+- name: "Reboot"
+  shell: sleep 5 && sync && shutdown -r now "Ansible Reboot"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: install.changed
+  register: rebooted
+
+- name: "Wait for up"
+  wait_for_connection:
+    delay: 5
+    connect_timeout: 5
+    sleep: 1
+    timeout: 240
+  when: rebooted.changed

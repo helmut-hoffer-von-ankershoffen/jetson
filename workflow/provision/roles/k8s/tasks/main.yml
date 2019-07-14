@@ -1,0 +1,99 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+    - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Pass bridged IPv4 traffic to iptables' chains"
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: "1"
+    state: present
+
+- name: "Update /etc/docker/daemon.json to use docker-registry mirror on router"
+  copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+  register: daemon
+
+- name: "Restart docker"
+  service:
+    name: docker
+    state: restarted
+  when: daemon.changed
+
+- name: "Add Google Cloud repo key"
+  apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+
+- name: "Add Kubernetes to apt repositories"
+  apt_repository:
+    repo: 'deb http://apt.kubernetes.io/ kubernetes-xenial main'
+    state: present
+    filename: kubernetes
+    update_cache: yes
+
+- name: "Install k8s ({{ kubernetes.package_version }})"
+  apt:
+    state: present
+    force: yes
+    update_cache: yes
+    pkg:
+    - kubelet={{ kubernetes.package_version }}
+    - kubeadm={{ kubernetes.package_version }}
+    - kubectl={{ kubernetes.package_version }}
+    - kubernetes-cni
+  ignore_errors: yes
+
+- name: "kubeadmn config images pull"
+  shell: kubeadm config images pull --kubernetes-version={{ kubernetes.version }}
+
+- name: "Reset K8S"
+  shell: kubeadm reset -f
+  register: kubeadm_reset
+
+- name: "Delete net.d"
+  file:
+    path: "/etc/cni/net.d"
+    state: absent
+  become: true
+  ignore_errors: true
+
+- name: "Create net.d"
+  file:
+    path: "/etc/cni/net.d"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Create /etc/kubernetes"
+  file:
+    path: /etc/kubernetes
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Inject join configuration"
+  template:
+    src: join.conf.j2
+    dest: /etc/kubernetes/join.conf
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Join cluster"
+  shell: kubeadm join --ignore-preflight-errors=all --config /etc/kubernetes/join.conf
+  when: kubeadm_reset is succeeded
+  register: kubeadm_join
+
+- name: "Poke kubelet"
+  systemd:
+    name: kubelet
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+  register: kubelet_poke

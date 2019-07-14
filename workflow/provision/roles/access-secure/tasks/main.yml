@@ -1,0 +1,34 @@
+- name: "Check all hosts accessible"
+  assert:
+    that:
+      - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Allow passwordless sudo for users in group sudo"
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD:ALL'
+    validate: 'visudo -cf %s'
+
+- name: "Disable ssh login with empty password"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?PermitEmptyPasswords'
+    line: 'PermitEmptyPasswords no'
+  notify: restart sshd
+
+- name: "Disable ssh login for root"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin no'
+  notify: restart sshd
+
+- name: "Disable ssh login via password"
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: '^(#\s*)?PasswordAuthentication'
+    line: 'PasswordAuthentication no'
+  notify: restart sshd
+

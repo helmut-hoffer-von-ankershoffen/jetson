@@ -1,0 +1,22 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: jupyter
+  namespace: jetson-jupyter
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/frontend-entry-points: http,https
+    traefik.ingress.kubernetes.io/redirect-entry-point: https
+    traefik.ingress.kubernetes.io/redirect-permanent: "false"
+    traefik.ingress.kubernetes.io/auth-type: "basic"
+    traefik.ingress.kubernetes.io/auth-secret: "jupyter.polarize.ai"
+spec:
+  rules:
+  - host: jupyter.polarize.ai
+    http:
+      paths:
+        - path: /
+          backend:
+            serviceName: jupyter
+            servicePort: http

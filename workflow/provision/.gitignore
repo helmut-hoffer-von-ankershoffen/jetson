@@ -1,0 +1,6 @@
+.log/*
+!log/.gitkeep
+.cache/*
+!.cache/.gitkeep
+.cp/*
+!.cp/.gitkeep

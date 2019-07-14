@@ -1,0 +1,55 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+      - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Install packages"
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - vnc4server
+  register: packages
+
+- name: "Create configuration directory"
+  file:
+    path: ~admin/.vnc
+    state: directory
+    owner: admin
+    mode: "0700"
+
+- name: "Set password"
+  shell: "printf '{{ vnc.password }}\n{{ vnc.password }}\n\n' | vnc4passwd"
+
+- name: "Copy configuration"
+  copy:
+    src: xstartup
+    dest: ~admin/.vnc/xstartup
+    owner: admin
+    mode: "0700"
+
+- name: "Start after boot"
+  cron:
+    user: "admin"
+    name: "vncserver"
+    special_time: reboot
+    job: "/usr/bin/vncserver :1"
+  register: cron
+
+- name: "Reboot"
+  shell: sleep 5 && sync && shutdown -r now "Ansible Reboot"
+  async: 1
+  poll: 0
+  ignore_errors: true
+  when: cron.changed
+  register: rebooted
+
+- name: "Wait for up"
+  wait_for_connection:
+    delay: 5
+    connect_timeout: 5
+    sleep: 1
+    timeout: 240
+  when: rebooted.changed

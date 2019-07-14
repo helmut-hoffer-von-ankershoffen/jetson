@@ -1,0 +1,23 @@
+apiVersion: skaffold/v1beta11
+kind: Config
+build:
+  local: {}
+  tagPolicy:
+    sha256: {}
+  artifacts:
+  - image: max-one.local:5001/jetson/device-query
+    custom:
+      buildCommand: ./builder
+      dependencies:
+        paths:
+          - src
+        ignore:
+          - .gitignore
+deploy:
+  kustomize:
+    path: kustomize/overlays/max
+    flags:
+      global:
+        - "--namespace=jetson-device-query"
+profiles:
+- name: max

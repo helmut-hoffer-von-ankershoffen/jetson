@@ -1,0 +1,78 @@
+---
+
+- name: Secure access
+  hosts: all
+  become: yes
+  roles:
+    - role: access-secure
+  tags: [access_secure]
+
+- name: Base
+  hosts: all
+  become: yes
+  roles:
+    - role: base
+  tags: [provision,base]
+
+- name: Kernel
+  hosts: all
+  become: yes
+  roles:
+    - role: kernel
+  tags: [provision,kernel]
+
+- name: Firewall
+  hosts: all
+  become: yes
+  roles:
+    - role: firewall
+  tags: [firewall]
+
+- name: LXDE
+  hosts: all
+  become: yes
+  roles:
+    - role: lxde
+  tags: [provision,lxde]
+
+- name: VNC
+  hosts: all
+  become: yes
+  roles:
+    - role: vnc
+  tags: [provision,vnc]
+
+- name: XRDP
+  hosts: all
+  become: yes
+  roles:
+    - role: xrdp
+  tags: [optional,xrdp]
+
+- name: Kubernetes
+  hosts: all
+  become: yes
+  roles:
+    - role: k8s
+  tags: [provision,k8s]
+
+- name: Build
+  hosts: all
+  become: yes
+  roles:
+    - role: build
+  tags: [provision,build]
+
+- name: Swap
+  hosts: all
+  become: yes
+  roles:
+    - role: swap
+  tags: [provision,swap]
+
+- name: Performance mode
+  hosts: all
+  become: yes
+  roles:
+    - role: performance-mode
+  tags: [provision,performance_mode]

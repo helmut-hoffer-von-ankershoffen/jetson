@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: jetson-jupyter
+  name: jupyter
+  labels:
+    app: jupyter
+spec:
+  ports:
+  - port: 80
+    targetPort: 8888
+    name: http
+  selector:
+    app: jupyter
+  type: LoadBalancer
+  loadBalancerIP: 12.0.0.208
+

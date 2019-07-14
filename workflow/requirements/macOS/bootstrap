@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# Cp. https://raw.githubusercontent.com/siyelo/laptop/master/install.sh
+
+fancy_echo() {
+  local fmt="$1"; shift
+
+  # shellcheck disable=SC2059
+  printf "\n$fmt\n" "$@"
+}
+
+fancy_echo "Boostrapping Mac for development ..."
+
+trap 'ret=$?; test $ret -ne 0 && printf "failed\n\n" >&2; exit $ret' EXIT
+
+set -e
+
+# Ensure Apple's command line tools are installed
+if ! command -v cc >/dev/null; then
+  fancy_echo "Installing xcode ..."
+  xcode-select --install
+else
+  fancy_echo "Xcode already installed. Skipping."
+fi
+
+# Ensure Homebrew is installed
+if ! command -v brew >/dev/null; then
+  fancy_echo "Installing Homebrew ..."
+  ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null
+else
+  fancy_echo "Homebrew already installed. Skipping."
+fi
+
+# Update Homebrew recipes
+fancy_echo "Updating Homebrew recipes ..."
+brew update
+
+# Ensure Ruby is installed
+fancy_echo "Installing ruby ..."
+brew install rbenv ruby-build ruby
+
+# Ensure some configuration in ~/.bash_profile
+fancy_echo "Configuring ~/.bash_profile ..."
+grep -qxF 'export COMPOSER_PROCESS_TIMEOUT=3600' ~/.bash_profile || echo 'export COMPOSER_PROCESS_TIMEOUT=3600' >> ~/.bash_profile
+grep -qxF 'export GPG_TTY=$(tty)' ~/.bash_profile || echo 'export GPG_TTY=$(tty)' >> ~/.bash_profile
+grep -qxF 'export GEM_HOME=$HOME/gems' ~/.bash_profile || echo 'export GEM_HOME=$HOME/gems' >> ~/.bash_profile
+grep -qxF 'export PATH=$HOME/gems/bin:$HOME/.cargo/bin:$PATH' ~/.bash_profile || echo 'export PATH=$HOME/gems/bin:$HOME/.cargo/bin:$PATH' >> ~/.bash_profile
+grep -qxF 'if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi' ~/.bash_profile || echo 'if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi' >> ~/.bash_profile
+grep -qxF 'if [ -f $(brew --prefix)/etc/bash_completion ]; then . $(brew --prefix)/etc/bash_completion; fi' ~/.bash_profile || echo 'if [ -f $(brew --prefix)/etc/bash_completion ]; then . $(brew --prefix)/etc/bash_completion; fi' >> ~/.bash_profile
+# Ensure some configuration in ~/.ssh/config
+fancy_echo "Configuring ~/.ssh/config ..."
+mkdir -p  ~/.ssh
+chmod 755 ~/.ssh
+grep -qxF 'Host *' ~/.ssh/config || echo 'Host *' >> ~/.ssh/config && echo '    UseKeychain yes' >> ~/.ssh/config
+
+# Ensure Ansible is installed
+if ! command -v ansible >/dev/null; then
+  fancy_echo "Installing Ansible ..."
+  brew install ansible
+else
+  fancy_echo "Ansible already installed. Skipping."
+fi
+
+fancy_echo "Done with bootstrap step 0 ..."

@@ -1,0 +1,12 @@
+.idea
+*~
+.DS_Store
+._.DS_Store
+.com.apple.timemachine.supported
+.docker-sync
+.gitattributes
+
+workflow/provision/image/*
+!workflow/provision/image/.gitkeep
+
+.ipynb_checkpoints

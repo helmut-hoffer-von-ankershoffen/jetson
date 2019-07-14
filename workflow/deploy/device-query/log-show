@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+kubectl --namespace=jetson-device-query logs $(kubectl --namespace=jetson-device-query get pods | awk '/device-query/ {print $1;exit}')
