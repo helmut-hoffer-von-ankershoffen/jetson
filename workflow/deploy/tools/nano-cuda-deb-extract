@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+echo "Extracting and downloading cuda packages from nano ..."
+ssh build@nano-one.local << EOF
+    echo "Repacking packages for cuda10 libraries such as libcudnn, TensorRT and python bindings on nano ..."
+    rm -rf nano-cuda-deb || true
+    mkdir nano-cuda-deb || true
+    cd nano-cuda-deb
+    dpkg-repack \$(dpkg -l | grep cuda10 | awk '{print \$2}' | tr '\n' ' ')
+    cd  ..
+
+    echo "Creating archive of packages on nano ..."
+    tar czvf nano-cuda-deb.tgz -C ~/nano-cuda-deb . -C /var/cuda-repo-10-0-local-10.0.166 .
+    rm -rf nano-cuda-deb
+EOF
+
+echo "Downloading archive of packages from nano ..."
+scp build@nano-one.local:nano-cuda-deb.tgz nano-cuda-deb.tgz.new
+
+echo "Removing archive of packages from nano ..."
+ssh build@nano-one.local rm -f nano-cuda-deb.tgz
+
+echo "Extracting and downloading cuda packages from nano done."
+echo "Look for the file nano-cuda-deb.tgz in your current working directory!"

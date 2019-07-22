@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: device-query
-  namespace: jetson-device-query
+  name: tensorflow-serving
+  namespace: jetson-tensorflow-serving
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: device-query
+      app: tensorflow-serving
   template:
     metadata:
-      name: device-query
+      name: tensorflow-serving
       labels:
-        app: device-query
+        app: tensorflow-serving
     spec:
-      hostname: device-query
+      hostname: tensorflow-serving
       containers:
-        - name: device-query
-          image: max-one.local:5001/jetson/device-query
+        - name: tensorflow-serving
+          image: max-one.local:5001/jetson/tensorflow-serving
           volumeMounts:
             - mountPath: /dev/nvhost-ctrl
               name: nvhost-ctrl
@@ -35,6 +35,9 @@ spec:
               name: drivers
           securityContext:
             privileged: true
+          ports:
+            - containerPort: 80
+              name: http
       volumes:
         - name: nvhost-ctrl
           hostPath:

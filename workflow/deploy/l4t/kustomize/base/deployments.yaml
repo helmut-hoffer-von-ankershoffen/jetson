@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: l4t
+  namespace: jetson-l4t
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: l4t
+  template:
+    metadata:
+      name: l4t
+      labels:
+        app: l4t
+    spec:
+      hostname: l4t
+      containers:
+        - name: l4t
+          image: max-one.local:5001/jetson/l4t
+          ports:
+            - containerPort: 80
+              name: http
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      nodeSelector:
+        jetson: "true"

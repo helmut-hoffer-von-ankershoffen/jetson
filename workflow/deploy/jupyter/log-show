@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-kubectl --namespace=jetson-jupyter logs $(kubectl --namespace=jetson-jupyter get pods | awk '/jupyter/ {print $1;exit}')

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+kubectl --namespace=jetson-$1 logs $(kubectl --namespace=jetson-$1 get pods | awk "/$1/" {print $1;exit}')

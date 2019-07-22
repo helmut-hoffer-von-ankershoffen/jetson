@@ -62,7 +62,7 @@ bootstrap-environment-message: ## Echo a message that the app installation is ha
 
 
 image-download: ## Download Nvidia Jetpack into workflow/provision/image
-	cd workflow/provision/image && wget -N -O jetson-nano-sd.zip https://developer.nvidia.com/embedded/dlc/jetson-nano-dev-kit-sd-card-image && unzip -o *.zip && rm -f jetson-nano-sd.zip
+	cd workflow/provision/image && wget -N -O jetson-nano-sd.zip https://developer.nvidia.com/jetson-nano-sd-card-image-r322 && unzip -o *.zip && rm -f jetson-nano-sd.zip
 
 setup-access-secure: ## Allow passwordless ssh and sudo, disallow ssh with password
 	ssh-copy-id -i ~/.ssh/id_rsa admin@nano-one.local
@@ -102,6 +102,7 @@ provision-swap: ## Provision swap
 provision-performance-mode: ## Set performace mode
 	cd workflow/provision && ansible-playbook main.yml --tags "performance_mode"
 
+
 nano-one-ssh: ## ssh to nano-one as user admin
 	ssh admin@nano-one.local
 
@@ -110,6 +111,9 @@ nano-one-ssh-build: ## ssh to nano-one as user build
 
 nano-one-exec: ## exec command on nano-one - you must pass in arguments e.g. tegrastats
 	ssh build@nano-one.local $(filter-out $@,$(MAKECMDGOALS))
+
+nano-cuda-deb-extract: ## Extract cuda, libcudnn and TensorRT libraries inc. python bindings from nano as archive of packages
+	workflow/deploy/tools/nano-cuda-deb-extract
 
 
 k8s-proxy: ## Open proxy
@@ -121,24 +125,31 @@ k8s-dashboard-bearer-token-show: ## Show dashboard bearer token
 k8s-dashboard-open: ## Open Dashboard
 	python -mwebbrowser http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/overview?namespace=default
 
+k8s-token-create: ## Create token to join cluster
+	ssh root@max-one.local kubeadm token create
 
-device-query-deploy: device-query-build-and-push ## Build and deploy device query
+
+ml-base-build-and-push: ## Build and push ml base image for Docker on nano with cuda and tensorflow
+	cd workflow/deploy/ml-base && skaffold build
+
+
+device-query-deploy: ml-base-build-and-push ## Build and deploy device query
 	kubectl create namespace jetson-device-query || true
 	cd workflow/deploy/device-query && skaffold run
 
 device-query-log-show: ## Show log of pod
-	cd workflow/deploy/device-query && ./log-show
+	workflow/deploy/tools/log-show device-query
 
-device-query-delete: ## Delete device query deployment
-	kubectl delete namespace jetson-device-query || true
-	cd workflow/deploy/device-query && skaffold delete
-
-device-query-dev: ## Enter build, deploy, tail, watch cycle for device query
+device-query-dev: ml-base-build-and-push ## Enter build, deploy, tail, watch cycle for device query
 	kubectl create namespace jetson-device-query || true
 	cd workflow/deploy/device-query && skaffold dev
 
+device-query-delete: ## Delete device query deployment
+	cd workflow/deploy/device-query && skaffold delete
+	kubectl delete namespace jetson-device-query || true
 
-jupyter-deploy: jupyter-build-and-push ## Build and deploy jupyter
+
+jupyter-deploy: ml-base-build-and-push ## Build and deploy jupyter
 	kubectl create namespace jetson-jupyter || true
 	kubectl create secret generic jupyter.polarize.ai --from-file workflow/deploy/jupyter/.basic-auth --namespace=jetson-jupyter || true
 	cd workflow/deploy/jupyter && skaffold run
@@ -147,13 +158,34 @@ jupyter-open: ## Open browser pointing to jupyter notebook
 	python -mwebbrowser http://jupyter.nano-one.local/
 
 jupyter-log-show: ## Show log of pod
-	cd workflow/deploy/jupyter && ./log-show
+	workflow/deploy/tools/log-show jupyter
 
-jupyter-delete: ## Delete jupyter deployment
-	kubectl delete namespace jetson-jupyter || true
-	cd workflow/deploy/jupyter && skaffold delete
-
-jupyter-dev: ## Enter build, deploy, tail, watch cycle for jupyter
+jupyter-dev: ml-base-build-and-push ## Enter build, deploy, tail, watch cycle for jupyter
 	kubectl create namespace jetson-jupyter || true
 	kubectl create secret generic jupyter.polarize.ai --from-file workflow/deploy/jupyter/.basic-auth --namespace=jetson-jupyter || true
 	cd workflow/deploy/jupyter && skaffold dev
+
+jupyter-delete: ## Delete jupyter deployment
+	cd workflow/deploy/jupyter && skaffold delete
+	kubectl delete namespace jetson-jupyter || true
+
+
+tensorflow-serving-deploy: ml-base-build-and-push ## Build and deploy tensorflow-serving
+	kubectl create namespace jetson-tensorflow-serving || true
+	kubectl create secret generic tensorflow-serving.polarize.ai --from-file workflow/deploy/tensorflow-serving/.basic-auth --namespace=jetson-tensorflow-serving || true
+	cd workflow/deploy/tensorflow-serving && skaffold run
+
+tensorflow-serving-open: ## Open browser pointing to tensorflow-serving notebook
+	python -mwebbrowser http://tensorflow-serving.nano-one.local/
+
+tensorflow-serving-log-show: ## Show log of pod
+	workflow/deploy/tools/log-show tensorflow-serving
+
+tensorflow-serving-dev: ml-base-build-and-push ## Enter build, deploy, tail, watch cycle for tensorflow-serving
+	kubectl create namespace jetson-tensorflow-serving || true
+	kubectl create secret generic tensorflow-serving.polarize.ai --from-file workflow/deploy/tensorflow-serving/.basic-auth --namespace=jetson-tensorflow-serving || true
+	cd workflow/deploy/tensorflow-serving && skaffold dev
+
+tensorflow-serving-delete: ## Delete tensorflow-serving deployment
+	cd workflow/deploy/tensorflow-serving && skaffold delete
+	kubectl delete namespace jetson-tensorflow-serving || true

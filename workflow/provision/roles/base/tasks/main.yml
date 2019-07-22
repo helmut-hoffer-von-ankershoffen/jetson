@@ -59,21 +59,27 @@
   apt:
     state: latest
     pkg:
-      - net-tools
-      - dnsutils
-      - sudo
-      - sendmail-bin
-      - python-setuptools
-      - python-pip
-      - ntp
-      - telnet
       - ca-certificates
       - curl
+      - dnsutils
       - gnupg2
-      - software-properties-common
-      - ipvsadm
-      - nano
-      - nmap
+      - hdparm
       - htop
       - iotop
+      - ipvsadm
+      - nano
+      - net-tools
+      - nmap
+      - ntp
+      - python-pip
+      - python-setuptools
+      - sendmail-bin
+      - software-properties-common
+      - sudo
+      - telnet
 
+- name: "Install ctop"
+  get_url:
+    url: https://github.com/bcicen/ctop/releases/download/v0.7.2/ctop-0.7.2-linux-arm64
+    dest: /usr/local/bin/ctop
+    mode: '0755'

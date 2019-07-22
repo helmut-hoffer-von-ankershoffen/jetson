@@ -5,9 +5,9 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: max-one.local:5001/jetson/device-query
+  - image: max-one.local:5001/jetson/tensorflow-serving
     custom:
-      buildCommand: ../tools/builder device-query
+      buildCommand: ../tools/builder tensorflow-serving
       dependencies:
         paths:
           - src
@@ -18,6 +18,6 @@ deploy:
     path: kustomize/overlays/max
     flags:
       global:
-        - "--namespace=jetson-device-query"
+        - "--namespace=jetson-tensorflow-serving"
 profiles:
 - name: max

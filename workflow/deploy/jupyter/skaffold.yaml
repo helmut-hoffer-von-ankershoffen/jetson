@@ -7,7 +7,7 @@ build:
   artifacts:
   - image: max-one.local:5001/jetson/jupyter
     custom:
-      buildCommand: ./builder
+      buildCommand: ../tools/builder jupyter
       dependencies:
         paths:
           - src

@@ -10,3 +10,6 @@ workflow/provision/image/*
 !workflow/provision/image/.gitkeep
 
 .ipynb_checkpoints
+.nvcr.auth
+
+nano-cuda-deb.tgz

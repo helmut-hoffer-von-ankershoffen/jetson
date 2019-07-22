@@ -15,4 +15,6 @@
         marker: "# {mark} jetson {{ item.name }}"
       with_items:
         - { name: nano-one.local, ip: 12.0.0.104 }
-        - { name: jupyter.nano-one.local,  ip: 12.0.0.208 }
+        - { name: jupyter.nano-one.local, ip: 12.0.0.208 }
+        - { name: tensorflow-serving.nano-one.local, ip: 12.0.0.209 }
+

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+## Project to build
+project=$1
+cd $(dirname "$0")/../$project
+echo "Building $IMAGES for project $project ..."
+
+## Sync src from development machine to nano
+echo "Synching from devlopment machine to nano for project $project ..."
+rsync -rlptza --delete -P src/ build@nano-one.local:~/$project
+
+## Build Docker image on nano
+ssh build@nano-one.local << EOF
+  echo "Building Docker image on nano for project $project ..."
+  docker build --memory 8g --memory-swap -1 -t $project ~/$project
+EOF
+
+## Tag and possibly push images
+for image in $(echo $IMAGES | tr " " "\n")
+do
+    echo "Tagging as $image for project $project..."
+    ssh build@nano-one.local "docker tag $project $image"
+    if $PUSH_IMAGE
+    then
+        echo "Pushing $image for project $project..."
+        ssh build@nano-one.local "docker push $image"
+    fi
+done

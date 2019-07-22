@@ -31,14 +31,8 @@ spec:
               name: nvhost-gpu
             - mountPath: /dev/nvhost-as-gpu
               name: nvhost-as-gpu
-            - mountPath: /usr/lib/aarch64-linux-gnu/libcudnn.so.7
-              name: lib
-              subPath: libcudnn.so.7.3.1
             - mountPath: /usr/lib/aarch64-linux-gnu/tegra
-              name: lib
-              subPath: tegra
-            - mountPath: /usr/local/cuda-10.0
-              name: cuda
+              name: drivers
           securityContext:
             privileged: true
           ports:
@@ -73,11 +67,8 @@ spec:
         - name: nvhost-as-gpu
           hostPath:
             path: /dev/nvhost-as-gpu
-        - name: lib
+        - name: drivers
           hostPath:
-            path: /usr/lib/aarch64-linux-gnu/
-        - name: cuda
-          hostPath:
-            path: /usr/local/cuda-10.0
+            path: /usr/lib/aarch64-linux-gnu/tegra
       nodeSelector:
         jetson: "true"

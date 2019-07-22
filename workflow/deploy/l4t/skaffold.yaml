@@ -5,9 +5,9 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: max-one.local:5001/jetson/device-query
+  - image: max-one.local:5001/jetson/l4t
     custom:
-      buildCommand: ../tools/builder device-query
+      buildCommand: ./builder.mac
       dependencies:
         paths:
           - src
@@ -18,6 +18,6 @@ deploy:
     path: kustomize/overlays/max
     flags:
       global:
-        - "--namespace=jetson-device-query"
+        - "--namespace=jetson-l4t"
 profiles:
 - name: max

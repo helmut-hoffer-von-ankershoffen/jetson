@@ -1,0 +1,7 @@
+---
+resources:
+- ingresses.yaml
+- services.yaml
+- deployments.yaml
+- pvcs.yaml
+- namespace.yaml

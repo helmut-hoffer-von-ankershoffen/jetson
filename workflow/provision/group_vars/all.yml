@@ -7,7 +7,7 @@ vnc:
   password: secret
 
 kubernetes:
-  token: p76cc9.j7s7nt7uvpj3uhy2
+  token: uvh6dz.3vgpezn8x8y3c6xf
   podnet: 10.244.0.0/16
   version: "v1.14.2"
   package_version: "1.14.2-00"

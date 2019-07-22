@@ -10,6 +10,7 @@
     state: latest
     pkg:
       - rsync
+      - dpkg-repack
 
 - name: "Setup build user and assign to groups"
   user:

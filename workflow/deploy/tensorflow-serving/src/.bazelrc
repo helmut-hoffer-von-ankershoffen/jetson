@@ -1,0 +1,61 @@
+# Optimizations used for TF Serving release builds.
+build:release --copt=-mavx
+build:release --copt=-msse4.2
+
+# Options used to build with CUDA.
+build:cuda --crosstool_top=@local_config_cuda//crosstool:toolchain
+build:cuda --define=using_cuda=true --define=using_cuda_nvcc=true
+
+# Please note that MKL on MacOS or windows is still not supported.
+# If you would like to use a local MKL instead of downloading, please set the
+# environment variable "TF_MKL_ROOT" every time before build.
+build:mkl --define=build_with_mkl=true --define=enable_mkl=true
+
+# This config option is used to enable MKL-DNN open source library only,
+# without depending on MKL binary version.
+build:mkl_open_source_only --define=build_with_mkl_dnn_only=true
+build:mkl_open_source_only --define=build_with_mkl=true --define=enable_mkl=true
+
+# Processor native optimizations (depends on build host capabilities).
+build:nativeopt --copt=-march=native
+build:nativeopt --host_copt=-march=native
+build:nativeopt --copt=-O3
+
+build --action_env PYTHON_BIN_PATH="/opt/archiconda3/bin/python"
+build --define PYTHON_BIN_PATH=/opt/archiconda3/bin/python
+
+build --spawn_strategy=standalone
+build --genrule_strategy=standalone
+
+build --define=grpc_no_ares=true
+
+build -c opt
+
+# Adding --cxxopt=-D_GLIBCXX_USE_CXX11_ABI=0" creates parity with TF
+# compilation options. It also addresses memory use due to
+# copy-on-write semantics of std::strings of the older ABI.
+build --cxxopt=-D_GLIBCXX_USE_CXX11_ABI=0
+
+build --workspace_status_command=/proc/self/cwd/tools/gen_status_stamp.sh
+
+# Options for crossbuilding to armv7-a
+build:arm32v7 --crosstool_top=//tools/cpp/arm:toolchain
+build:arm32v7 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+build:arm32v7 --cpu=armeabi
+build:arm32v7 --copt=-march=armv7-a
+build:arm32v7 --copt=-O3
+build:arm32v7 --copt=-DARM_NON_MOBILE
+build:arm32v7 --copt=-DRASPBERRY_PI
+build:arm32v7 --define LIBEVENT_HOST=arm-linux-gnueabihf
+build:arm32v7 --define LIBEVENT_MARCH=-march=armv7-a
+
+# Options for crossbuilding to armv8-a
+build:arm64v8 --crosstool_top=//tools/cpp/arm:toolchain
+build:arm64v8 --host_crosstool_top=@bazel_tools//tools/cpp:toolchain
+build:arm64v8 --cpu=aarch64
+build:arm64v8 --copt=-march=armv8-a
+build:arm64v8 --copt=-O3
+build:arm64v8 --copt=-DARM_NON_MOBILE
+build:arm64v8 --copt=-DRASPBERRY_PI
+build:arm64v8 --define LIBEVENT_HOST=aarch64-linux-gnu
+build:arm64v8 --define LIBEVENT_MARCH=-march=armv8-a

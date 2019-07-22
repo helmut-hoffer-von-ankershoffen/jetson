@@ -1,8 +1,13 @@
-FROM arm64v8/ubuntu:16.04
+FROM max-one.local:5001/jetson/ml-base
 
-ENV LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu/tegra
+MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
-RUN mkdir /app
-COPY deviceQuery /app/
+# Build and install device query
+RUN cd /usr/local/cuda/samples/1_Utilities/deviceQuery && \
+    make clean && \
+    make && \
+    mkdir /app && \
+    cp deviceQuery /app/deviceQuery
 
+# Execute deviceQuery to validate cuda and driver access on boot than sleep
 CMD exec /bin/bash -c "trap : TERM INT; /app/deviceQuery; echo \"Sleeping until terminated ...\"; sleep infinity & wait"

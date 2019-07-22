@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")"
+
+echo "Building $IMAGES ..."
+
+password=$(<.nvcr.auth)
+docker login -u \$oauthtoken -p $password nvcr.io
+cd src
+
+## Project to build
+project=l4t
+
+## Build on mac
+echo "Building Docker image ..."
+export DOCKER_CLI_EXPERIMENTAL=enabled
+docker buildx create --name $project
+docker buildx inspect --bootstrap
+docker buildx build --platform linux/arm64 -t l4t .
+
+## Tag and possibly push images
+for image in $(echo $IMAGES | tr " " "\n")
+do
+    echo "Tagging as $image for project $project..."
+    docker tag $project $image
+    if $PUSH_IMAGE
+    then
+        echo "Pushing $image for project $project..."
+        docker push $image
+    fi
+done

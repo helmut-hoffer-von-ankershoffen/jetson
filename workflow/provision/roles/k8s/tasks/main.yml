@@ -85,6 +85,14 @@
     group: root
     mode: "0755"
 
+- name: "Inject extra configuration"
+  template:
+    src: kubelet.j2
+    dest: /etc/default/kubelet
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: "Join cluster"
   shell: kubeadm join --ignore-preflight-errors=all --config /etc/kubernetes/join.conf
   when: kubeadm_reset is succeeded
