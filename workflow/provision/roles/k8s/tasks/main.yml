@@ -5,13 +5,18 @@
     that:
     - ansible_play_hosts == ansible_play_hosts_all
 
+- name: "Add the br_netfilter module"
+  modprobe:
+    name: br_netfilter
+    state: present
+
 - name: "Pass bridged IPv4 traffic to iptables' chains"
   sysctl:
     name: net.bridge.bridge-nf-call-iptables
     value: "1"
     state: present
 
-- name: "Update /etc/docker/daemon.json to use docker-registry mirror on router"
+- name: "Update /etc/docker/daemon.json to use docker-registry mirror and private registry on router and enable NVIDIA container runtime by default"
   copy:
     src: daemon.json
     dest: /etc/docker/daemon.json

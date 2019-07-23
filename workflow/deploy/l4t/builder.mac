@@ -4,19 +4,20 @@ cd "$(dirname "$0")"
 
 echo "Building $IMAGES ..."
 
-password=$(<.nvcr.auth)
-docker login -u \$oauthtoken -p $password nvcr.io
-cd src
-
 ## Project to build
 project=l4t
+cd src
+
+## Rsync cuda samples from nano to mac into src/samples
+echo "Synching cuda samples from nano to mac"
+rsync -av --delete --exclude .gitkeep -e ssh  build@nano-one.local:/usr/local/cuda/samples/* samples
 
 ## Build on mac
 echo "Building Docker image ..."
 export DOCKER_CLI_EXPERIMENTAL=enabled
 docker buildx create --name $project
 docker buildx inspect --bootstrap
-docker buildx build --platform linux/arm64 -t l4t .
+docker buildx build --load --platform linux/arm64 -t l4t .
 
 ## Tag and possibly push images
 for image in $(echo $IMAGES | tr " " "\n")

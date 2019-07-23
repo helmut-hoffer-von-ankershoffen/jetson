@@ -15,7 +15,7 @@
 
 - name: "Download public sources"
   uri:
-    url: https://developer.download.nvidia.com/embedded/L4T/r32_Release_v1.0/jetson-nano/BSP/Jetson-Nano-public_sources.tbz2
+    url: https://developer.download.nvidia.com/embedded/L4T/r32-2_Release_v1.0/Nano-TX1/public_sources.tbz2
     dest: ~root/Jetson-Nano-public_sources.tbz2
     status-code: 200
 
@@ -53,6 +53,9 @@
     dest: ~root/kernel/kernel-4.9/.config
     mode: "0644"
 
+- name: "Inject firmware to allow to boot from USB drive"
+  shell: cp /lib/firmware/tegra21x_xusb_firmware ~root/kernel/kernel-4.9/firmware/tegra21x_xusb_firmware
+
 - name: "Build kernel and modules"
   shell: cd ~root/kernel/kernel-4.9 && make prepare && make modules_prepare && make -j5 Image && make -j5 modules
 
@@ -69,17 +72,8 @@
     - ~root/hardware
 
 - name: "Reboot"
-  shell: sleep 5 && sync && shutdown -r now "Ansible Reboot"
-  async: 1
-  poll: 0
-  ignore_errors: true
+  reboot:
+    reboot_timeout: 300
   when: install.changed
   register: rebooted
 
-- name: "Wait for up"
-  wait_for_connection:
-    delay: 5
-    connect_timeout: 5
-    sleep: 1
-    timeout: 240
-  when: rebooted.changed

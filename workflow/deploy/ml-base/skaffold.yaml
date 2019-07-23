@@ -7,7 +7,7 @@ build:
   artifacts:
   - image: max-one.local:5001/jetson/ml-base
     custom:
-      buildCommand: ../tools/builder ml-base
+      buildCommand: ./builder ml-base
       dependencies:
         paths:
           - src

@@ -18,7 +18,6 @@
     shell: '/bin/bash'
     groups:
       - docker
-      - admin
       - sudo
     append: yes
     comment: 'managed by ansible'

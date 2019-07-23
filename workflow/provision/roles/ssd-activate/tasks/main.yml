@@ -1,0 +1,30 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+      - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Configure boot menu to boot from SSD by default given configured ssd.uuid"
+  template:
+    src: extlinux.conf.j2
+    dest: /boot/extlinux/extlinux.conf
+  register: ssdDevice
+
+- name: "Configure boot menu to boot from SSD by default given configured ssd.uuid"
+  template:
+    src: extlinux.conf.j2
+    dest: /boot/extlinux/extlinux.conf
+  register: ssdDevice
+
+- name: "Reboot"
+  reboot:
+    reboot_timeout: 300
+
+- name: "Mount microSD"
+  mount:
+    path: /mnt/mmc
+    src: "/dev/mmcblk0p1"
+    fstype: ext4
+    state: mounted
+    opts: nofail

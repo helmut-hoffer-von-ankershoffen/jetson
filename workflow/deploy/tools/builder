@@ -12,7 +12,7 @@ rsync -rlptza --delete -P src/ build@nano-one.local:~/$project
 ## Build Docker image on nano
 ssh build@nano-one.local << EOF
   echo "Building Docker image on nano for project $project ..."
-  docker build --memory 8g --memory-swap -1 -t $project ~/$project
+  docker build -t $project ~/$project
 EOF
 
 ## Tag and possibly push images
