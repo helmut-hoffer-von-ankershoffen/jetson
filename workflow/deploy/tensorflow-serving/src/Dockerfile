@@ -12,20 +12,25 @@ RUN wget --quiet https://github.com/bazelbuild/bazel/releases/download/0.24.1/ba
     cd .. && \
     rm -rf bazel*
 
-# Build TF serving from source
+# Build TF serving from source using bazel build including Python binding
 WORKDIR /tensorflow-serving
 ARG TF_SERVING_VERSION_GIT_BRANCH=master
 ARG TF_SERVING_VERSION_GIT_COMMIT=head
 ENV TF_NEED_CUDA=1
-ENV TF_TENSORRT_VERSION=5.0.6.3
-ENV CUDNN_VERSION=7.3.1.28
+ENV TF_TENSORRT_VERSION=5.1.6
+ENV CUDNN_VERSION=7.5.0
 ENV TMP=/tmp
 ENV BAZEL_PYTHON=/opt/archiconda3/bin/python
 COPY /.bazelrc /tmp/.bazelrc
 RUN git clone --branch=${TF_SERVING_VERSION_GIT_BRANCH} https://github.com/tensorflow/serving . && \
     git remote add upstream https://github.com/tensorflow/serving.git && \
     if [ "${TF_SERVING_VERSION_GIT_COMMIT}" != "head" ]; then git checkout ${TF_SERVING_VERSION_GIT_COMMIT} ; fi && \
+    \
     mv /tmp/.bazelrc .bazelrc && \
+    \
+    ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1 && \
+    LD_LIBRARY_PATH=/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH} \
+    \
     bazel \
     build \
     --color=yes \
@@ -36,11 +41,29 @@ RUN git clone --branch=${TF_SERVING_VERSION_GIT_BRANCH} https://github.com/tenso
     --config=cuda \
     --config=nativeopt \
     --copt="-fPIC"\
-    tensorflow_serving/model_servers:tensorflow_model_server || true && \
+    tensorflow_serving/model_servers:tensorflow_model_server && \
     cp /tensorflow-serving/bazel-bin/tensorflow_serving/model_servers/tensorflow_model_server /usr/local/bin/tensorflow_model_server && \
+    rm -f /usr/local/cuda/lib64/stubs/libcuda.so.1 && \
+    \
+    bazel build --color=yes --curses=yes \
+    --color=yes \
+    --curses=yes \
+    --jobs="1" \
+    --verbose_failures \
+    --output_filter=DONT_MATCH_ANYTHING \
+    --config=cuda \
+    --config=nativeopt \
+    --copt="-fPIC"\
+    tensorflow_serving/tools/pip_package:build_pip_package && \
+    bazel-bin/tensorflow_serving/tools/pip_package/build_pip_package \
+    /tmp/pip && \
+    pip --no-cache-dir install \
+    /tmp/pip/tensorflow_serving_api_gpu-*.whl && \
+    rm -rf /tmp/pip && \
+    \
     rm  -rf /tensorflow-serving
 
-# Set where models should be stored in the container
+# Create model directory
 WORKDIR /
 ENV MODEL_BASE_PATH=/models
 RUN mkdir -p ${MODEL_BASE_PATH}

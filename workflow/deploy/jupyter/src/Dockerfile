@@ -1,4 +1,5 @@
-FROM max-one.local:5001/jetson/ml-base
+ARG base=max-one.local:5001/jetson/ml-base
+FROM ${base}
 
 MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 

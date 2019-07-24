@@ -11,3 +11,4 @@ workflow/provision/image/*
 
 .ipynb_checkpoints
 .nvcr.auth
+.docker-hub.auth

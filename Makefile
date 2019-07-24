@@ -148,10 +148,20 @@ k8s-token-create: ## Create token to join cluster
 ml-base-build-and-push: ## Build and push ml base image for Docker on nano with cuda and tensorflow
 	cd workflow/deploy/ml-base && skaffold build
 
+ml-base-publish: ## Publish latest ml base image on nano to Docker Hub
+	workflow/deploy/tools/publish ml-base $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
 
 device-query-deploy: ## Build and deploy device query
 	kubectl create namespace jetson-device-query || true
 	cd workflow/deploy/device-query && skaffold run
+
+device-query-deploy-base-docker-hub: ## Build and deploy device query, use ml-base image from Docker Hub
+	kubectl create namespace jetson-device-query || true
+	cd workflow/deploy/device-query && skaffold run -p base-docker-hub
+
+device-query-deploy-docker-hub: ## Build and deploy device query, use ml-base image from Docker Hub and child image from Docker Hub
+	kubectl create namespace jetson-device-query || true
+	cd workflow/deploy/device-query && skaffold run -p base-docker-hub -p child-docker-hub
 
 device-query-log-show: ## Show log of pod
 	workflow/deploy/tools/log-show device-query
@@ -160,10 +170,23 @@ device-query-dev: ## Enter build, deploy, tail, watch cycle for device query
 	kubectl create namespace jetson-device-query || true
 	cd workflow/deploy/device-query && skaffold dev
 
+device-query-dev-base-docker-hub: ## Enter build, deploy, tail, watch cycle for device query, use ml-base image from Docker Hub
+	kubectl create namespace jetson-device-query || true
+	cd workflow/deploy/device-query && skaffold dev -p base-docker-hub
+
+device-query-publish: ## Publish latest device-query image on nano to Docker Hub
+	workflow/deploy/tools/publish device-query $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+
 device-query-delete: ## Delete device query deployment
 	cd workflow/deploy/device-query && skaffold delete
 	kubectl delete namespace jetson-device-query || true
 
+
+
+jupyter-deploy: ## Build and deploy jupyter
+	kubectl create namespace jetson-jupyter || true
+	kubectl create secret generic jupyter.polarize.ai --from-file workflow/deploy/jupyter/.basic-auth --namespace=jetson-jupyter || true
+	cd workflow/deploy/jupyter && skaffold run
 
 jupyter-deploy: ## Build and deploy jupyter
 	kubectl create namespace jetson-jupyter || true

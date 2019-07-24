@@ -73,3 +73,12 @@
     url: https://github.com/bcicen/ctop/releases/download/v0.7.2/ctop-0.7.2-linux-arm64
     dest: /usr/local/bin/ctop
     mode: '0755'
+
+- name: "Add user provision to group docker"
+  user:
+    name: 'provision'
+    shell: '/bin/bash'
+    groups:
+      - docker
+    append: yes
+    comment: 'managed by ansible'

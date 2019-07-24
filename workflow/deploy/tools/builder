@@ -2,6 +2,7 @@
 
 ## Project to build
 project=$1
+
 cd $(dirname "$0")/../$project
 echo "Building $IMAGES for project $project ..."
 
@@ -12,7 +13,14 @@ rsync -rlptza --delete -P src/ build@nano-one.local:~/$project
 ## Build Docker image on nano
 ssh build@nano-one.local << EOF
   echo "Building Docker image on nano for project $project ..."
-  docker build -t $project ~/$project
+  if [ -z "$2" ]; then
+    echo "Not overriding FROM ..."
+    docker build -t $project ~/$project
+  else
+    from=$2
+    echo "Using FROM $from as build argument ..."
+    docker build -t $project ~/$project --build-arg FROM=$from
+  fi
 EOF
 
 ## Tag and possibly push images
