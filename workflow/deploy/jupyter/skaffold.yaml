@@ -15,7 +15,7 @@ build:
           - .gitignore
 deploy:
   kustomize:
-    path: kustomize
+    path: kustomize/base
     flags:
       global:
         - "--namespace=jetson-jupyter"
@@ -25,7 +25,7 @@ profiles:
     - op: replace
       path: /deploy/kustomize/path
       value: kustomize/overlays/max
-- name: from-docker-hub
+- name: docker-hub-parent
   patches:
     - op: replace
       path: /build/artifacts/0/custom/buildCommand

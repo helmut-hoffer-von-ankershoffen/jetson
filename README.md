@@ -3,19 +3,28 @@
 `Experimenting` with [**arm64**](https://en.wikipedia.org/wiki/ARM_architecture) based [**NVIDIA Jetson**](https://www.nvidia.com/de-de/autonomous-machines/embedded-systems/) (Nano) [edge devices](https://www.networkworld.com/article/3224893/what-is-edge-computing-and-how-it-s-changing-the-network.html) running [**Kubernetes**](http://kubernetes.org/) (K8s) for [**machine learning**](https://see.stanford.edu/Course/CS229) (ML) including [Jupyter Notebooks](https://jupyter.org/), [TensorFlow Training](https://www.tensorflow.org/) and [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving) using [CUDA](https://de.wikipedia.org/wiki/CUDA) for [**smart IoT**](https://www.mdpi.com/2504-2289/2/3/26/htm).
  
 Hints:
-- Assumes an **Nvidia Jetson [Nano](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-nano/), TX1, TX2 or [AGX Xavier](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-agx-xavier/)** as edge device, called "nano" below for simplicity.
+- Assumes an **NVIDIA Jetson [Nano](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-nano/), TX1, TX2 or [AGX Xavier](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-agx-xavier/)** as edge device, called "nano" below for simplicity.
 - Assumes a **macOS workstation for development** such as [MacBook Pro](https://www.apple.com/mac/)
 - Assumes access to a **bare-metal Kubernetes cluster** the nano can join e.g. set up using [Project Max](https://github.com/helmuthva/ceil/tree/max).
 - Assumes basic knowledge of [**Ansible**](https://www.ansible.com/), [**Docker**](https://www.docker.com/) and Kubernetes.
 
 
-## Goals and features
+## Mission
 
-- [x] basics: Prepare **hardware**
+- **Evaluate feasibility** and complexity of **Kubernetes + machine learning on edge devices** for future smart IoT projects
+- Provide **patterns to the Jetson community** on how to use Ansible and Kubernetes with Jetson devices for **automation** and  **orchestration**
+- **Lower the entry barrier** for some machine learning **students** by using cheap edge devices available offline with this starter instead of requiring commercial clouds available online
+- Provide a modern **Jupyter** based infrastructure for students of the  **Stanford CS229 course** using Octave as kernel
+- Remove some personal rust and have **fun**
+
+
+## Features
+
+- [x] basics: Prepare **hardware** including shared shopping list
 - [x] basics: Automatically provision requirements on **macOS device for development**
-- [x] basics: Manually provision **root os** using [**Nvidia JetPack**](https://developer.nvidia.com/embedded/jetpack) and [**balenaEtcher**](https://www.balena.io/etcher/)
+- [x] basics: Manually provision **root os** using [**NVIDIA JetPack**](https://developer.nvidia.com/embedded/jetpack) and [**balenaEtcher**](https://www.balena.io/etcher/)
 - [x] basics: Works with latest [**JetPack 4.2.1**](https://devtalk.nvidia.com/default/topic/1057580/jetson-nano/jetpack-4-2-1-l4t-r32-2-release-for-jetson-nano-jetson-tx1-tx2-and-jetson-agx-xavier/1) and default container runtime
-- [ ] basics: Works with official [**Nvidia Container Runtime**](https://github.com/NVIDIA/nvidia-container-runtime), [NGC](https://ngc.nvidia.com/) et al
+- [ ] basics: Works with official [**NVIDIA Container Runtime**](https://github.com/NVIDIA/nvidia-container-runtime), [NGC](https://ngc.nvidia.com/) et al
 - [x] basics: Automatically setup **secure ssh access**
 - [x] basics: Automatically setup **sudo**
 - [x] basics: Automatically setup **basic packages** for development, [DevOps](https://en.wikipedia.org/wiki/DevOps) and CloudOps
@@ -30,7 +39,7 @@ Hints:
 - [x] ml: **Automatically repack** CUDNN, TensorRT and support **libraries** including python bindings that are bundled with JetPack on Jetson host as deb packages using **dpkg-repack** for later use in Docker builds
 - [x] ml: Automatically build Docker base image **`jetson/ml-base`** including CUDA, [CUDNN](https://developer.nvidia.com/cudnn), [TensorRT](https://developer.nvidia.com/tensorrt), TensorFlow and [Anaconda](https://www.anaconda.com/) for [arm64](https://github.com/Archiconda)
 - [x] ml: Automatically build and deploy **Jupyter server** for data science with support for CUDA accelerated [Octave](https://www.gnu.org/software/octave/), [Seaborn](https://seaborn.pydata.org/), TensorFlow and [Keras](https://keras.io/) as pod in Kubernetes cluster running on jetson node
-- [ ] ml: Automatically build and deploy **TensorFlow Serving** using [bazel](https://bazel.build/) including simple FastAPI based application server for predictions
+- [ ] ml: Automatically build and deploy **TensorFlow Serving** using [bazel](https://bazel.build/) including simple FastAPI based webservice for prediction
 - [ ] ml: Experiment with containers from **NGC** such as [**`nvcr.io/nvidia/l4t-base`**](vhttps://ngc.nvidia.com/catalog/containers/nvidia:l4t-base)
 - [ ] ml: Build out **example application** using TensorFlow training and serving
 - [x] optional: Automatically setup **swap** given memory constraints on Jetson Nano
@@ -76,10 +85,10 @@ Hint:
 
 ### Manually flash root os, create `provision` account and automatically establish secure access
 
-1) Execute **`make image-download`** on your macOS device to download and unzip the Nvidia Jetpack image into `workflow/provision/image/`
+1) Execute **`make image-download`** on your macOS device to download and unzip the NVIDIA Jetpack image into `workflow/provision/image/`
 2) Start the **`balenaEtcher`** application and flash your micro sd card with the downloaded image
 3) Wire the nano up with the ethernet switch of your **Kubernetes cluster**
-4) Insert the designated micro sd card in your Nvidia Jetson nano and **power up**
+4) Insert the designated micro sd card in your NVIDIA Jetson nano and **power up**
 5) **Create a user account** with username **`provision`** and "Administrator" rights via the UI and set **`nano-one`** as hostname - wait until the login screen appears
 6) Execute **`make setup-access-secure`** and enter the password you set for the `provision` user in the step above when asked - passwordless ssh access and sudo will be set up
 
@@ -119,6 +128,7 @@ Hints:
 - Containers mount **device drivers** - such as `usr/lib/aarch64-linux-gnu/tegra/*` as well as devices **`/dev/nv*`** at runtime to access the GPU and Tensor Cores - see `workflow/deploy/device-query/kustomize/base/deployment.yaml` for details
 - Kubernetes deployments are defined using **kustomize** - you can thus define kustomize [**overlays**](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#bases-and-overlays) for deployments on other clusters or scale-out easily
 - Kustomize overlays can be easily referenced using [**Skaffold profiles**](https://skaffold.dev/docs/how-tos/profiles/)
+- Most containers provide targets for [**Container Structure Tests**](https://github.com/GoogleContainerTools/container-structure-test) - execute `make device-query-build-and-test` as an example 
 - If you did **not** use **[Project Max](https://github.com/helmuthva/ceil/tree/max)** to provision your bare-metal Kubernetes cluster make sure your cluster provides a DNSMASQ and DHCP server, firewalling, VPN and private Docker registry as well as support for Kubernetes features such as persistent volumes, ingress and loadbalancing as required during build and in deployments - adapt occurrences of the name `max-one` accordingly to wire up with your infrastructure
 
 
@@ -144,7 +154,7 @@ Hints:
 
 ## Optional: Cross-build Docker images for Jetson on macOS (wip)
 
-1) Execute **`make l4t-deploy`** to cross-build Docker image on macOS using buildkit based on official base image from Nvidia and deploy - functionality is identical to `device-query` - see above
+1) Execute **`make l4t-deploy`** to cross-build Docker image on macOS using buildkit based on official base image from NVIDIA and deploy - functionality is identical to `device-query` - see above
 
 Hints:
 - Have a look at the **custom Skaffold builder for Mac** in `workflow/deploy/l4t/builder.mac` on how this is achieved

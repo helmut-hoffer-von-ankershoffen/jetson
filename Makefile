@@ -102,6 +102,9 @@ provision-swap: ## Provision swap
 provision-performance-mode: ## Set performace mode
 	cd workflow/provision && ansible-playbook main.yml --tags "performance_mode"
 
+provision-test: ## Install tools for testing
+	cd workflow/provision && ansible-playbook main.yml --tags "test"
+
 
 nano-one-ssh: ## ssh to nano-one as user provision
 	ssh provision@nano-one.local
@@ -145,23 +148,37 @@ k8s-token-create: ## Create token to join cluster
 	ssh root@max-one.local kubeadm token create
 
 
-ml-base-build-and-push: ## Build and push ml base image for Docker on nano with cuda and tensorflow
+ml-base-build-and-test: ## Build, push and test ml base image for Docker on nano with cuda and tensorflow
 	cd workflow/deploy/ml-base && skaffold build
+	workflow/deploy/tools/container-structure-test ml-base
 
-ml-base-publish: ## Publish latest ml base image on nano to Docker Hub
+ml-base-publish: ## Publish latest ml base image on nano to Docker Hub given credentials in .docker-hub.auth
 	workflow/deploy/tools/publish ml-base $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+
+
+tensorflow-serving-base-build-and-test: ## Build, push and test ml tensorflow-serving image for Docker on nano extending ml-base with TensorFlow *Serving*
+	cd workflow/deploy/tensorflow-serving-base && skaffold build
+	workflow/deploy/tools/container-structure-test tensorflow-serving-baser
+
+tensorflow-serving-base-publish: ## Publish latest tensorflow-serving base image on nano to Docker Hub given credentials in .docker-hub.auth
+	workflow/deploy/tools/publish tensorflow-serving-base $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+
+
+device-query-build-and-test: ## Build and test device-query
+	cd workflow/deploy/device-query && skaffold build
+	workflow/deploy/tools/container-structure-test device-query
 
 device-query-deploy: ## Build and deploy device query
 	kubectl create namespace jetson-device-query || true
 	cd workflow/deploy/device-query && skaffold run
 
-device-query-deploy-base-docker-hub: ## Build and deploy device query, use ml-base image from Docker Hub
+device-query-deploy-docker-hub-parent: ## Build and deploy device query, pull ml-base image from Docker Hub
 	kubectl create namespace jetson-device-query || true
-	cd workflow/deploy/device-query && skaffold run -p base-docker-hub
+	cd workflow/deploy/device-query && skaffold run -p parent-docker-hub
 
-device-query-deploy-docker-hub: ## Build and deploy device query, use ml-base image from Docker Hub and child image from Docker Hub
+device-query-deploy-docker-hub: ## Deploy device query, pull image from Docker Hub
 	kubectl create namespace jetson-device-query || true
-	cd workflow/deploy/device-query && skaffold run -p base-docker-hub -p child-docker-hub
+	cd workflow/deploy/device-query && skaffold run -p docker-hub
 
 device-query-log-show: ## Show log of pod
 	workflow/deploy/tools/log-show device-query
@@ -170,11 +187,11 @@ device-query-dev: ## Enter build, deploy, tail, watch cycle for device query
 	kubectl create namespace jetson-device-query || true
 	cd workflow/deploy/device-query && skaffold dev
 
-device-query-dev-base-docker-hub: ## Enter build, deploy, tail, watch cycle for device query, use ml-base image from Docker Hub
+device-query-dev-docker-hub-parent: ## Enter build, deploy, tail, watch cycle for device query, pull ml-base image from Docker Hub
 	kubectl create namespace jetson-device-query || true
-	cd workflow/deploy/device-query && skaffold dev -p base-docker-hub
+	cd workflow/deploy/device-query && skaffold dev -p docker-hub-parent
 
-device-query-publish: ## Publish latest device-query image on nano to Docker Hub
+device-query-publish: ## Publish latest device-query image on nano to Docker Hub given credentials in .docker-hub.auth
 	workflow/deploy/tools/publish device-query $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
 
 device-query-delete: ## Delete device query deployment
@@ -182,16 +199,22 @@ device-query-delete: ## Delete device query deployment
 	kubectl delete namespace jetson-device-query || true
 
 
+jupyter-build-and-test: ## Build and test jupyter
+	cd workflow/deploy/jupyter && skaffold build
+	workflow/deploy/tools/container-structure-test jupyter
 
 jupyter-deploy: ## Build and deploy jupyter
 	kubectl create namespace jetson-jupyter || true
 	kubectl create secret generic jupyter.polarize.ai --from-file workflow/deploy/jupyter/.basic-auth --namespace=jetson-jupyter || true
 	cd workflow/deploy/jupyter && skaffold run
 
-jupyter-deploy: ## Build and deploy jupyter
+jupyter-deploy-docker-hub-parent: ## Build and deploy jupyter, pull ml-base image from Docker Hub
 	kubectl create namespace jetson-jupyter || true
-	kubectl create secret generic jupyter.polarize.ai --from-file workflow/deploy/jupyter/.basic-auth --namespace=jetson-jupyter || true
-	cd workflow/deploy/jupyter && skaffold run
+	cd workflow/deploy/jupyter && skaffold run -p parent-docker-hub
+
+jupyter-deploy-docker-hub: ## Deploy jupyter, pull image from Docker Hub
+	kubectl create namespace jetson-jupyter || true
+	cd workflow/deploy/jupyter && skaffold run -p docker-hub
 
 jupyter-open: ## Open browser pointing to jupyter notebook
 	python -mwebbrowser http://jupyter.nano-one.local/
@@ -204,18 +227,38 @@ jupyter-dev: ## Enter build, deploy, tail, watch cycle for jupyter
 	kubectl create secret generic jupyter.polarize.ai --from-file workflow/deploy/jupyter/.basic-auth --namespace=jetson-jupyter || true
 	cd workflow/deploy/jupyter && skaffold dev
 
+jupyter-dev-docker-hub-parent: ## Enter build, deploy, tail, watch cycle for jupyter, pull ml-base image from Docker Hub
+	kubectl create namespace jupyter-query || true
+	cd workflow/deploy/jupyter && skaffold dev -p docker-hub-parent
+
+jupyter-publish: ## Publish latest jupyter image on nano to Docker Hub given credentials in .docker-hub.auth
+	workflow/deploy/tools/publish jupyter $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+
 jupyter-delete: ## Delete jupyter deployment
 	cd workflow/deploy/jupyter && skaffold delete
 	kubectl delete namespace jetson-jupyter || true
 
+
+
+tensorflow-serving-build-and-test: ## Build and test tensorflow-serving
+	cd workflow/deploy/tensorflow-serving && skaffold build
+	workflow/deploy/tools/container-structure-test tensorflow-serving
 
 tensorflow-serving-deploy: ## Build and deploy tensorflow-serving
 	kubectl create namespace jetson-tensorflow-serving || true
 	kubectl create secret generic tensorflow-serving.polarize.ai --from-file workflow/deploy/tensorflow-serving/.basic-auth --namespace=jetson-tensorflow-serving || true
 	cd workflow/deploy/tensorflow-serving && skaffold run
 
-tensorflow-serving-open: ## Open browser pointing to tensorflow-serving notebook
+tensorflow-serving-open: ## Open browser pointing to tensorflow-serving webservice
 	python -mwebbrowser http://tensorflow-serving.nano-one.local/
+
+tensorflow-serving-predict: ## Send prediction REST and webservice requests
+	@echo "Predicting via REST API ..."
+	@curl -d '{"instances": [1.0, 2.0, 5.0]}' -X POST http://tensorflow-serving.nano-one.local:8501/v1/models/half_plus_two:predict
+	@echo ""
+	@echo "Predicting via Webservice API ..."
+	@curl -d '{"instances": [1.0, 2.0, 5.0]}' -X POST http://tensorflow-serving.nano-one.local/predict
+	@echo ""
 
 tensorflow-serving-log-show: ## Show log of pod
 	workflow/deploy/tools/log-show tensorflow-serving
@@ -224,6 +267,9 @@ tensorflow-serving-dev: ## Enter build, deploy, tail, watch cycle for tensorflow
 	kubectl create namespace jetson-tensorflow-serving || true
 	kubectl create secret generic tensorflow-serving.polarize.ai --from-file workflow/deploy/tensorflow-serving/.basic-auth --namespace=jetson-tensorflow-serving || true
 	cd workflow/deploy/tensorflow-serving && skaffold dev
+
+tensorflow-serving-publish: ## Publish latest tensorflow-serving image on nano to Docker Hub given credentials in .docker-hub.auth
+	workflow/deploy/tools/publish tensorflow-serving $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
 
 tensorflow-serving-delete: ## Delete tensorflow-serving deployment
 	cd workflow/deploy/tensorflow-serving && skaffold delete
@@ -243,6 +289,9 @@ l4t-log-show: ## Show log of pod
 l4t-dev: ## Enter cross-build, deploy, tail, watch cycle for l4t
 	kubectl create namespace jetson-l4t || true
 	cd workflow/deploy/l4t && skaffold dev
+
+l4t-publish: ## Publish latest lt4 image on nano to Docker Hub given credentials in .docker-hub.auth
+	workflow/deploy/tools/publish l4t $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
 
 l4t-delete: ## Delete l4t deployment
 	cd workflow/deploy/l4t && skaffold delete

@@ -37,7 +37,11 @@ spec:
             privileged: true
           ports:
             - containerPort: 80
-              name: http
+              name: webservice
+            - containerPort: 8500
+              name: grpc
+            - containerPort: 8501
+              name: rest
       volumes:
         - name: nvhost-ctrl
           hostPath:

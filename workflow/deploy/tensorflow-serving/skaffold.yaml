@@ -5,19 +5,28 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: max-one.local:5001/jetson/tensorflow-serving
-    custom:
-      buildCommand: ../tools/builder tensorflow-serving
-      dependencies:
-        paths:
-          - src
-        ignore:
-          - .gitignore
+    - image: max-one.local:5001/jetson/tensorflow-serving
+      custom:
+        buildCommand: ../tools/builder tensorflow-serving
+        dependencies:
+          paths:
+            - src
+          ignore:
+            - .gitignore
 deploy:
   kustomize:
-    path: kustomize/overlays/max
+    path: kustomize/base
     flags:
       global:
         - "--namespace=jetson-tensorflow-serving"
 profiles:
-- name: max
+  - name: max
+    patches:
+      - op: replace
+        path: /deploy/kustomize/path
+        value: kustomize/overlays/max
+  - name: quickcheck
+    test:
+      - image: max-one.local:5001/jetson/tensorflow-serving
+        structureTests:
+          - ./test/*

@@ -1,0 +1,6 @@
+schemaVersion: 2.0.0
+
+fileExistenceTests:
+  - name: 'no local libcudart.so library'
+    path: /usr/local/cuda/lib64/libcudart.so
+    shouldExist: true

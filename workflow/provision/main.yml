@@ -56,6 +56,13 @@
     - role: build
   tags: [provision,build]
 
+- name: Test
+  hosts: all
+  become: yes
+  roles:
+    - role: test
+  tags: [provision,test]
+
 - name: Performance mode
   hosts: all
   become: yes

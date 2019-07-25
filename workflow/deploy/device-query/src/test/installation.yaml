@@ -1,0 +1,6 @@
+schemaVersion: 2.0.0
+
+fileExistenceTests:
+  - name: 'no local deviceQuery binary'
+    path: /app/deviceQuery
+    shouldExist: true

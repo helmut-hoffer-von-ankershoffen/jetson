@@ -10,7 +10,7 @@ cd $(dirname "$0")/../$project
 ssh build@nano-one.local << EOF
   echo "Logging in to Docker Hub as $user ..."
   docker login --username $user --password $password
-  echo "Publishing latest image of project $project to Docker Hub ..."
-  docker tag $project helmuthva/jetson-$project:latest
-  docker push helmuthva/jetson-$project:latest
+  echo "Publishing latest image of project $project to Docker Hub as $user/jetson-$project:latest ..."
+  docker tag $project $user/jetson-$project:latest
+  docker push $user/jetson-$project:latest
 EOF

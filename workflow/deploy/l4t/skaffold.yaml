@@ -15,9 +15,13 @@ build:
           - .gitignore
 deploy:
   kustomize:
-    path: kustomize/overlays/max
+    path: kustomize/base
     flags:
       global:
         - "--namespace=jetson-l4t"
 profiles:
 - name: max
+  patches:
+    - op: replace
+      path: /deploy/kustomize/path
+      value: kustomize/overlays/max
