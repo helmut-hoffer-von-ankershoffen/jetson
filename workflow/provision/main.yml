@@ -21,13 +21,6 @@
     - role: kernel
   tags: [provision,kernel]
 
-- name: Firewall
-  hosts: all
-  become: yes
-  roles:
-    - role: firewall
-  tags: [firewall]
-
 - name: LXDE
   hosts: all
   become: yes
@@ -63,12 +56,12 @@
     - role: build
   tags: [provision,build]
 
-- name: Swap
+- name: Test
   hosts: all
   become: yes
   roles:
-    - role: swap
-  tags: [provision,swap]
+    - role: test
+  tags: [provision,test]
 
 - name: Performance mode
   hosts: all
@@ -76,3 +69,31 @@
   roles:
     - role: performance-mode
   tags: [provision,performance_mode]
+
+- name: Swap (optional)
+  hosts: all
+  become: yes
+  roles:
+    - role: swap
+  tags: [swap]
+
+- name: Firewall (optional)
+  hosts: all
+  become: yes
+  roles:
+    - role: firewall
+  tags: [firewall]
+
+- name: Prepare SSD for boot (optional)
+  hosts: all
+  become: yes
+  roles:
+    - role: ssd-prepare
+  tags: [ssd_prepare]
+
+- name: Activate SSD for boot (optional)
+  hosts: all
+  become: yes
+  roles:
+    - role: ssd-activate
+  tags: [ssd_activate]

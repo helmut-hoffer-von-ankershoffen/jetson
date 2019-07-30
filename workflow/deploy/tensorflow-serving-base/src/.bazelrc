@@ -1,0 +1,33 @@
+###
+# .bazelrc adapted to ml-base image for Jetson devices
+###
+
+# Options used to build with CUDA.
+build:cuda --crosstool_top=@local_config_cuda//crosstool:toolchain
+build:cuda --define=using_cuda=true --define=using_cuda_nvcc=true
+
+# Jetson does not support NCCL
+build:jetson --define=maxrregcount=80 --define=no_nccl_support=true
+
+# Processor native optimizations (depends on build host capabilities).
+build:nativeopt --copt=-march=native
+build:nativeopt --host_copt=-march=native
+build:nativeopt --copt=-O3
+
+# Location of python given Anaconda installation in ml-base
+build --action_env PYTHON_BIN_PATH="/opt/archiconda3/bin/python"
+build --define PYTHON_BIN_PATH=/opt/archiconda3/bin/python
+
+build --spawn_strategy=standalone
+build --genrule_strategy=standalone
+
+build --define=grpc_no_ares=true
+
+build -c opt
+
+# Adding --cxxopt=-D_GLIBCXX_USE_CXX11_ABI=0" creates parity with TF
+# compilation options. It also addresses memory use due to
+# copy-on-write semantics of std::strings of the older ABI.
+build --cxxopt=-D_GLIBCXX_USE_CXX11_ABI=0
+
+build --workspace_status_command=/proc/self/cwd/tools/gen_status_stamp.sh

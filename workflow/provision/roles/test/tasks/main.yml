@@ -1,0 +1,26 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+    - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Install prerequisites"
+  apt:
+    state: latest
+    pkg:
+      - golang
+
+- name: "Build"
+  become: Yes
+  become_user: build
+  shell: |
+    cd ~build
+    go get github.com/GoogleContainerTools/container-structure-test/cmd/container-structure-test
+    wget -q -O cst-master.zip https://github.com/GoogleContainerTools/container-structure-test/archive/master.zip
+    rm  -rf container-structure-test-master || true
+    unzip -q cst-master.zip
+    cd container-structure-test-master
+    sed -i 's/GOARCH = amd64/GOARCH = arm64/' Makefile
+    make
+    sudo cp -f out/container-structure-test /usr/local/bin

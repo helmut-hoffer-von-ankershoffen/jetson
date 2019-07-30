@@ -15,9 +15,23 @@ build:
           - .gitignore
 deploy:
   kustomize:
-    path: kustomize/overlays/max
+    path: kustomize/base
     flags:
       global:
         - "--namespace=jetson-device-query"
 profiles:
-- name: max
+  - name: max
+    patches:
+      - op: replace
+        path: /deploy/kustomize/path
+        value: kustomize/overlays/max
+  - name: docker-hub-parent
+    patches:
+      - op: replace
+        path: /build/artifacts/0/custom/buildCommand
+        value: ../tools/builder jupyter helmuthva/jetson-ml-base
+  - name: docker-hub
+    patches:
+      - op: replace
+        path: /build/artifacts/0/image
+        value: helmuthva/jetson-device-query

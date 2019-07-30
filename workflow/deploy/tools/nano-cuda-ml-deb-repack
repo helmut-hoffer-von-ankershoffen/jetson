@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+echo "Repacking cuda-ml packages on nano and creating local repository ..."
+ssh build@nano-one.local << EOF
+    echo "Repacking packages for cuda-ml such as CUDNN, TensorRT and python bindings on nano ..."
+    sudo su
+    rm -rf /var/cuda-ml-local-repo || true
+    mkdir /var/cuda-ml-local-repo
+    cd /var/cuda-ml-local-repo
+    dpkg-repack \$(dpkg -l | grep cuda10 | awk '{print \$2}' | tr '\n' ' ')
+EOF
+

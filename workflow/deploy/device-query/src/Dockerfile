@@ -1,4 +1,5 @@
-FROM max-one.local:5001/jetson/ml-base
+ARG base=max-one.local:5001/jetson/ml-base
+FROM ${base}
 
 MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
@@ -10,4 +11,4 @@ RUN cd /usr/local/cuda/samples/1_Utilities/deviceQuery && \
     cp deviceQuery /app/deviceQuery
 
 # Execute deviceQuery to validate cuda and driver access on boot than sleep
-CMD exec /bin/bash -c "trap : TERM INT; /app/deviceQuery; echo \"Sleeping until terminated ...\"; sleep infinity & wait"
+CMD exec /bin/bash -c "trap : TERM INT; /app/deviceQuery; echo \"Sleeping until terminated - press ctrl+c...\"; sleep infinity & wait"

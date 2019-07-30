@@ -1,0 +1,2 @@
+KERNEL=="sd?", ENV{ID_SERIAL_SHORT}=="{{ ssd.id_serial_short}}", SYMLINK+="ssd"
+KERNEL=="sd?1", ENV{ID_SERIAL_SHORT}=="{{ ssd.id_serial_short}}", SYMLINK+="ssd1"

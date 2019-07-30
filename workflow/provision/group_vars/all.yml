@@ -7,7 +7,7 @@ vnc:
   password: secret
 
 kubernetes:
-  token: uvh6dz.3vgpezn8x8y3c6xf
+  token: 4pjg0l.8kee8qkmy5bc1fnj
   podnet: 10.244.0.0/16
   version: "v1.14.2"
   package_version: "1.14.2-00"
@@ -23,3 +23,7 @@ swap_test_mode: false
 nv:
   performance:
     mode: 0
+
+ssd:
+  id_serial_short: '0123456789ABCDEF'
+  uuid: '37d44148-5973-4454-bd59-1bd6867aa25e'

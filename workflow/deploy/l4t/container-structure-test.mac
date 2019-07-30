@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+## Project to build
+project=$1
+user=$2
+password=$3
+cd $(dirname "$0")
+
+echo "Executing container structure tests on mac for project $project ..."
+cd src
+for file in test/*.yaml; do
+    container-structure-test test --image $project --verbosity debug --config $file
+done

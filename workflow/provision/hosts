@@ -1,2 +1,2 @@
 [all]
-nano-one.local ansible_ssh_user="admin"
+nano-one.local ansible_ssh_user="provision"

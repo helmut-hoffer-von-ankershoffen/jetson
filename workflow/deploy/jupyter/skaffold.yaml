@@ -15,9 +15,18 @@ build:
           - .gitignore
 deploy:
   kustomize:
-    path: kustomize/overlays/max
+    path: kustomize/base
     flags:
       global:
         - "--namespace=jetson-jupyter"
 profiles:
 - name: max
+  patches:
+    - op: replace
+      path: /deploy/kustomize/path
+      value: kustomize/overlays/max
+- name: docker-hub-parent
+  patches:
+    - op: replace
+      path: /build/artifacts/0/custom/buildCommand
+      value: ../tools/builder jupyter helmuthva/jetson-ml-base

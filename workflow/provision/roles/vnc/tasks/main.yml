@@ -15,9 +15,9 @@
 
 - name: "Create configuration directory"
   file:
-    path: ~admin/.vnc
+    path: ~provision/.vnc
     state: directory
-    owner: admin
+    owner: provision
     mode: "0700"
 
 - name: "Set password"
@@ -26,30 +26,20 @@
 - name: "Copy configuration"
   copy:
     src: xstartup
-    dest: ~admin/.vnc/xstartup
-    owner: admin
+    dest: ~provision/.vnc/xstartup
+    owner: provision
     mode: "0700"
 
 - name: "Start after boot"
   cron:
-    user: "admin"
+    user: "provision"
     name: "vncserver"
     special_time: reboot
     job: "/usr/bin/vncserver :1"
   register: cron
 
 - name: "Reboot"
-  shell: sleep 5 && sync && shutdown -r now "Ansible Reboot"
-  async: 1
-  poll: 0
-  ignore_errors: true
+  reboot:
+    reboot_timeout: 300
   when: cron.changed
   register: rebooted
-
-- name: "Wait for up"
-  wait_for_connection:
-    delay: 5
-    connect_timeout: 5
-    sleep: 1
-    timeout: 240
-  when: rebooted.changed

@@ -11,5 +11,4 @@ workflow/provision/image/*
 
 .ipynb_checkpoints
 .nvcr.auth
-
-nano-cuda-deb.tgz
+.docker-hub.auth

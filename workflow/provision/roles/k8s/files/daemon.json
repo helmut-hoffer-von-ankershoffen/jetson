@@ -2,5 +2,11 @@
   "labels": [ "os=linux", "arch=arm64" ],
   "registry-mirrors": ["http://max-one.local:5000"],
   "insecure-registries": ["max-one.local:5000","max-one.local:5001"],
-  "experimental": true
+  "experimental": true,
+  "runtimes": {
+    "nvidia": {
+      "path": "/usr/bin/nvidia-container-runtime",
+      "runtimeArgs": []
+    }
+  }
 }

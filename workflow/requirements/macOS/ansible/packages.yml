@@ -52,4 +52,7 @@ pear_packages: []
 cargo_packages:
   - name: click
 
-download_executables: []
+download_executables:
+  - url: https://storage.googleapis.com/container-structure-test/latest/container-structure-test-darwin-amd64
+    dest: /usr/local/bin/container-structure-test
+

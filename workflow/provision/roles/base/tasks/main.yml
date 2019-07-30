@@ -40,20 +40,10 @@
   register: upgrade
 
 - name: "Reboot"
-  shell: sleep 5 && sync && shutdown -r now "Ansible Reboot"
-  async: 1
-  poll: 0
-  ignore_errors: true
+  reboot:
+    reboot_timeout: 300
   when: hostname.changed or upgrade.changed
   register: rebooted
-
-- name: "Wait for up"
-  wait_for_connection:
-    delay: 5
-    connect_timeout: 5
-    sleep: 1
-    timeout: 240
-  when: rebooted.changed
 
 - name: "Install prerequisites"
   apt:
@@ -71,9 +61,11 @@
       - net-tools
       - nmap
       - ntp
+      - libnotify-bin
       - python-pip
       - python-setuptools
       - sendmail-bin
+      - sensible-mda
       - software-properties-common
       - sudo
       - telnet
@@ -83,3 +75,12 @@
     url: https://github.com/bcicen/ctop/releases/download/v0.7.2/ctop-0.7.2-linux-arm64
     dest: /usr/local/bin/ctop
     mode: '0755'
+
+- name: "Add user provision to group docker"
+  user:
+    name: 'provision'
+    shell: '/bin/bash'
+    groups:
+      - docker
+    append: yes
+    comment: 'managed by ansible'

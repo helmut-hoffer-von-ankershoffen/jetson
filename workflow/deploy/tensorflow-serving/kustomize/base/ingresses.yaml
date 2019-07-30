@@ -19,4 +19,4 @@ spec:
         - path: /
           backend:
             serviceName: tensorflow-serving
-            servicePort: http
+            servicePort: webservice

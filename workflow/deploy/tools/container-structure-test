@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+## Project to build
+project=$1
+user=$2
+password=$3
+cd $(dirname "$0")/../$project
+
+## Sync src from development machine to nano
+echo "Synching from devlopment machine to nano for project $project ..."
+rsync -rlptza --delete -P src/ build@nano-one.local:~/$project
+
+## Execute container structure tests on nano
+ssh build@nano-one.local << EOF
+  echo "Executing container structure tests on nano for project $project ..."
+  cd $project
+  for file in test/*.yaml; do
+    container-structure-test test --image $project --verbosity debug --config test/\${file##*/}
+  done
+EOF
