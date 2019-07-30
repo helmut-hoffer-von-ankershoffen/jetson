@@ -35,19 +35,20 @@ Hints:
 - [X] basics: Automatically build **custom kernel** as required by Docker + Kubernetes + [**Weave networking**](https://www.weave.works/docs/net/latest/overview/) and allowing boot from USB 3.0 / SSD drive
 - [x] k8s: Automatically **[join](https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-join/) Kubernetes cluster** `max` as worker node labeled as `jetson` - see [Project Max](https://github.com/helmuthva/ceil/tree/max) reg. `max`
 - [x] k8s: Automatically build and deploy **CUDA [deviceQuery](https://github.com/NVIDIA/cuda-samples/tree/master/Samples/deviceQuery) as pod in Kubernetes cluster** to validate access to GPU and correct [labeling](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) of jetson based Kubernetes nodes
-- [x] k8s: Build and deploy using [**Skaffold**](https://skaffold.dev/), a [custom remote builder](https://skaffold.dev/docs/how-tos/builders/) for Jetson devices and [**kustomize**](https://kustomize.io/) for configurable Kubernetes deployments without the need for [Helm](https://helm.sh/) + Tiller 
+- [x] k8s: Build and deploy using [**Skaffold**](https://skaffold.dev/), a [custom remote builder](https://skaffold.dev/docs/how-tos/builders/) for Jetson devices and [**kustomize**](https://kustomize.io/) for configurable Kubernetes deployments without the need to write Go templates in [Helm](https://helm.sh/) for Tiller 
 - [x] k8s: Integrate [**Container Structure Tests**](https://github.com/GoogleContainerTools/container-structure-test) into workflows
 - [x] ml: **Automatically repack** CUDNN, TensorRT and support **libraries** including python bindings that are bundled with JetPack on Jetson host as deb packages using **dpkg-repack** for later use in Docker builds
 - [x] ml: Automatically build Docker base image **`jetson/ml-base`** including CUDA, [CUDNN](https://developer.nvidia.com/cudnn), [TensorRT](https://developer.nvidia.com/tensorrt), TensorFlow and [Anaconda](https://www.anaconda.com/) for [arm64](https://github.com/Archiconda)
 - [x] ml: Automatically build and deploy **Jupyter server** for data science with support for CUDA accelerated [Octave](https://www.gnu.org/software/octave/), [Seaborn](https://seaborn.pydata.org/), TensorFlow and [Keras](https://keras.io/) as pod in Kubernetes cluster running on jetson node
 - [x] ml: Automatically build Docker base image **`jetson/tensorflow-serving-base`** using [bazel](https://bazel.build/) and the latest TensorFlow core including support for CUDA capabilities of Jetson edge devices
 - [x] ml: Automatically build and deploy **simple Python/[**Fast API**](https://fastapi.tiangolo.com/) based webservice as facade of TensorFlow Serving** for getting predictions inc. health check for K8s probes, interactive OAS3 API documentation, request/response validation, access of TensorFlow Serving via REST and alternatively **gRPC**
+- [ ] ml: Automatically setup machine learning workflows using [**Kubeflow**](https://www.kubeflow.org/docs/started/getting-started/)
 - [ ] ml: Build out **end to end example application** using TensorFlow training, inference and serving using S3 provided by **minio** for deploying trained models for inference
 - [x] optional: Semi-automatically setup USB 3.0 / **SSD boot drive** given existing installation on micro sd card
 - [ ] optional: Automatically **[cross-build](https://engineering.docker.com/2019/04/multi-arch-images/) arm64 Docker images on macOS** for Jetson Nano using [**buildkit**](https://github.com/moby/buildkit) and [**buildx**](https://github.com/docker/buildx)
 - [ ] optional: Automatically setup **firewall** on host using [`ufw`](https://wiki.ubuntu.com/UncomplicatedFirewall) for basic security
 - [x] community: Publish images on [**Docker Hub**](https://hub.docker.com/u/helmuthva) and provide Skaffold profiles to pull from there instead of having to build before deploy
-- [ ] community: Author a series of **blog** posts explaining how to set up ML in Kubernetes on Jetson devices
+- [ ] community: Author a series of **blog** posts explaining how to set up ML in Kubernetes on Jetson devices based on this starter
 - [ ] ml: **Scale out** with Xaviers and deploy **Polarize.AI** ml training and inference tiers on Jetson nodes (separate project)
 
 
@@ -129,7 +130,7 @@ Hints:
 - Containers mount **device drivers** - such as `usr/lib/aarch64-linux-gnu/tegra/*` as well as devices **`/dev/nv*`** at runtime to access the GPU and Tensor Cores - see `workflow/deploy/device-query/kustomize/base/deployment.yaml` for details
 - Kubernetes deployments are defined using **kustomize** - you can thus define kustomize [**overlays**](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#bases-and-overlays) for deployments on other clusters or scale-out easily
 - Kustomize overlays can be easily referenced using [**Skaffold profiles**](https://skaffold.dev/docs/how-tos/profiles/)
-- All containers provide targets for container structure tests - execute `make device-query-build-and-test` as an example 
+- All containers provide targets for **container structure tests** - execute `make device-query-build-and-test` as an example 
 - For easier consumption all container images are published on [**Docker Hub**](https://hub.docker.com/u/helmuthva) - if you want to publish your own create a file called `.docker-hub.auth` in this directory (see `docker-hub.auth.template`) and execute the approriate make target, e.g. `make ml-base-publish`
 - If you did **not** use **[Project Max](https://github.com/helmuthva/ceil/tree/max)** to provision your bare-metal Kubernetes cluster make sure your cluster provides a DNSMASQ and DHCP server, firewalling, VPN and private Docker registry as well as support for Kubernetes features such as persistent volumes, ingress and loadbalancing as required during build and in deployments - adapt occurrences of the name `max-one` accordingly to wire up with your infrastructure
 - The webservice of `tensorflow-serving` accesses TensorFlow Serving via its REST or alternatively the **Python bindings of the gRPC API** - have a look at the directory `workflow/deploy/tensorflow-serving/src/webservice` for details of the implementation
@@ -198,3 +199,5 @@ Hints:
 - https://www.seldon.io/open-source/ (seldon,ml)
 - https://www.electronicdesign.com/industrial-automation/nvidia-egx-spreads-ai-cloud-edge (egx,edge-ai)
 - https://min.io/ (s3,lambda)
+- https://github.com/NVAITC/ai-lab (ai-lab,container)
+- https://www.altoros.com/blog/kubeflow-automating-deployment-of-tensorflow-models-on-kubernetes/ (kubeflow)
