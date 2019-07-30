@@ -15,7 +15,7 @@ Hints:
 - Provide **patterns to the Jetson community** on how to use Ansible and Kubernetes with Jetson devices for **automation** and  **orchestration**
 - **Lower the entry barrier** for some machine learning **students** by using cheap edge devices available offline with this starter instead of requiring commercial clouds available online
 - Provide a modern **Jupyter** based infrastructure for students of the  **Stanford CS229 course** using Octave as kernel
-- Remove some personal rust and have **fun**
+- Remove some personal rust regarding deep learning, multi ARM ,-) bandits, artificial intelligence in general and have **fun**
 
 
 ## Features
@@ -24,7 +24,7 @@ Hints:
 - [x] basics: Automatically provision requirements on **macOS device for development**
 - [x] basics: Manually provision **root os** using [**NVIDIA JetPack**](https://developer.nvidia.com/embedded/jetpack) and [**balenaEtcher**](https://www.balena.io/etcher/)
 - [x] basics: Works with latest [**JetPack 4.2.1**](https://devtalk.nvidia.com/default/topic/1057580/jetson-nano/jetpack-4-2-1-l4t-r32-2-release-for-jetson-nano-jetson-tx1-tx2-and-jetson-agx-xavier/1) and default container runtime
-- [ ] basics: Works with official [**NVIDIA Container Runtime**](https://github.com/NVIDIA/nvidia-container-runtime), [NGC](https://ngc.nvidia.com/) et al
+- [ ] basics: Works with official [**NVIDIA Container Runtime**](https://github.com/NVIDIA/nvidia-container-runtime), [NGC](https://ngc.nvidia.com/) and [**`nvcr.io/nvidia/l4t-base`**](vhttps://ngc.nvidia.com/catalog/containers/nvidia:l4t-base) base image provided by NVIDIA
 - [x] basics: Automatically setup **secure ssh access**
 - [x] basics: Automatically setup **sudo**
 - [x] basics: Automatically setup **basic packages** for development, [DevOps](https://en.wikipedia.org/wiki/DevOps) and CloudOps
@@ -39,16 +39,15 @@ Hints:
 - [x] ml: **Automatically repack** CUDNN, TensorRT and support **libraries** including python bindings that are bundled with JetPack on Jetson host as deb packages using **dpkg-repack** for later use in Docker builds
 - [x] ml: Automatically build Docker base image **`jetson/ml-base`** including CUDA, [CUDNN](https://developer.nvidia.com/cudnn), [TensorRT](https://developer.nvidia.com/tensorrt), TensorFlow and [Anaconda](https://www.anaconda.com/) for [arm64](https://github.com/Archiconda)
 - [x] ml: Automatically build and deploy **Jupyter server** for data science with support for CUDA accelerated [Octave](https://www.gnu.org/software/octave/), [Seaborn](https://seaborn.pydata.org/), TensorFlow and [Keras](https://keras.io/) as pod in Kubernetes cluster running on jetson node
-- [ ] ml: Automatically build and deploy **TensorFlow Serving** using [bazel](https://bazel.build/) including simple FastAPI based webservice for prediction
-- [ ] ml: Experiment with containers from **NGC** such as [**`nvcr.io/nvidia/l4t-base`**](vhttps://ngc.nvidia.com/catalog/containers/nvidia:l4t-base)
-- [ ] ml: Build out **example application** using TensorFlow training and serving
-- [x] optional: Automatically setup **swap** given memory constraints on Jetson Nano
+- [x] ml: Automatically build and deploy **TensorFlow Serving base image** using [bazel](https://bazel.build/) and the latest TensorFlow core including support for CUDA capabilities of Jetson edge devices
+- [x] ml: Automatically build and deploy **simple Python/[**Fast API**](https://fastapi.tiangolo.com/) based webservice as facade of TensorFlow Serving** for getting predictions inc. health check for K8s probes, interactive OAS3 API documentation, request/response validation, access of TensorFlow Serving via REST and alternatively **gRPC**
+- [ ] ml: Build out **end to end example application** using TensorFlow training, inference and serving using S3 provided by **minio** for deploying trained models for inference
 - [x] optional: Semi-automatically setup USB 3.0 / **SSD boot drive** given existing installation on micro sd card
 - [ ] optional: Automatically **[cross-build](https://engineering.docker.com/2019/04/multi-arch-images/) arm64 Docker images on macOS** for Jetson Nano using [**buildkit**](https://github.com/moby/buildkit) and [**buildx**](https://github.com/docker/buildx)
 - [ ] optional: Automatically setup **firewall** on host using [`ufw`](https://wiki.ubuntu.com/UncomplicatedFirewall) for basic security
-- [ ] community: Publish images on [**Docker Hub**](https://hub.docker.com/u/helmuthva) and provide Skaffold profiles to pull from there instead of having to build before deploy
+- [x] community: Publish images on [**Docker Hub**](https://hub.docker.com/u/helmuthva) and provide Skaffold profiles to pull from there instead of having to build before deploy
 - [ ] community: Author a series of **blog** posts explaining how to set up ML in Kubernetes on Jetson devices
-- [ ] ml: **Scale out** with Xaviers and deploy **Polarize.AI** ml training and serving tiers on Jetson nodes (separate project)
+- [ ] ml: **Scale out** with Xaviers and deploy **Polarize.AI** ml training and inference tiers on Jetson nodes (separate project)
 
 
 ## Hardware
@@ -113,11 +112,12 @@ Hints:
 
 ## Build and deploy services to Kubernetes cluster
 
-1) Execute **`make nano-one-cuda-ml-deb-repack`** *once* to repack libraries bundled with the Jetpack image as deb files such as CUDNN, TensorRT, TensorFlow libraries, python bindings - this will create the repository `/var/cuda-ml-local-repo` on your nano which is used in building the **`jetson/ml-base`** image -  have a look at `workflow/deploy/tools/nano-cuda-ml-deb-repack` for details
-2) Execute **`make ml-base-build-and-push`** *once* to build the Docker base image **`jetson/ml-base`** and push to the private registry of your cluster, which, amongst others, includes CUDA, CUDNN, TensorRT, TensorFlow, python bindings and Anaconda - have a look at the directory `workflow/deploy/ml-base` for details - most images below derive from this image
+1) Execute **`make nano-one-cuda-ml-deb-repack`** *once* to repack libraries bundled with the JetPack image as deb files such as CUDNN, TensorRT, TensorFlow libraries, python bindings - this will create the repository `/var/cuda-ml-local-repo` on your nano which is used in building the **`jetson/ml-base`** image -  have a look at `workflow/deploy/tools/nano-cuda-ml-deb-repack` for details
+2) Execute **`make ml-base-build-and-test`** *once* to build the Docker base image **`jetson/ml-base`**, test via container structure tests and push to the private registry of your cluster, which, amongst others, includes CUDA, CUDNN, TensorRT, TensorFlow, python bindings and Anaconda - have a look at the directory `workflow/deploy/ml-base` for details - most images below derive from this image
 3) Execute **`make device-query-deploy`** to build and deploy a pod into the Kubernetes cluster that **queries CUDA capabilities** thus validating GPU and [Tensor Core](https://www.nvidia.com/en-us/data-center/tensorcore/) access from inside Docker and correct labeling of Jetson/arm64 based Kubernetes nodes - execute `make device-query-log-show` to show the result after deploying
-4) Execute **`make jupyter-deploy`** to build and deploy a **Jupyter server** as a Kubernetes pod running on nano supporting CUDA accelerated **TensorFlow + Keras** including support for **Octave** as an alternative Jupyter Kernel - execute **`make jupyter-open`** to open a browser tab pointing to the Jupyter server to execute the bundled **Tensorflow Jupyter notebooks** for [deep learning](https://en.wikipedia.org/wiki/Deep_learning)
-5) Execute **`make tensorflow-serving-deploy`** to build and deploy **TensorFlow Serving** plus a [**Fast API**](https://fastapi.tiangolo.com/) based [Webservice](https://en.wikipedia.org/wiki/Web_service) API for accessing predictions as a Kubernetes pod running on nano - execute **`make tensorflow-serving-open`** to open a browser tab pointing to the Webservice API (wip)
+4) Execute **`make jupyter-deploy`** to build and deploy a **Jupyter server** as a Kubernetes pod running on nano supporting CUDA accelerated **TensorFlow + Keras** including support for **Octave** as an alternative Jupyter Kernel in addition to iPython - execute **`make jupyter-open`** to open a browser tab pointing to the Jupyter server to execute the bundled **Tensorflow Jupyter notebooks** for [deep learning](https://en.wikipedia.org/wiki/Deep_learning)
+4) Execute **`make tensorflow-serving-base-build-and-test`** *once* to build the TensorFlow Serving base image **`jetson/tensorflow-serving-base`** test via container structure tests and push to the private registry of your cluster - have a look at the directory `workflow/deploy/tensorflow-serving-base` for details - most images below derive from this image
+5) Execute **`make tensorflow-serving-deploy`** to build and deploy **TensorFlow Serving** plus a Python/Fast API based [Webservice](https://en.wikipedia.org/wiki/Web_service) for getting predictions as a Kubernetes pod running on nano - execute **`make tensorflow-serving-docs-open`** to open browser tabs pointing to the interactive OAS3 documentation Webservice API; execute **`make tensorflow-serving-health-check`** to check the health as used in readiness and liveness probes; execute **`make tensorflow-serving-predict`** get predictions
 
 Hints:
 - All deployment automatically create **a private Kubernetes namespace** using the pattern `jetson-$deployment` - e.g. `jetson-jupyter` for the Jupyter deployment - thus easing inspection in the [Kubernetes dashboard](https://github.com/kubernetes/dashboard), `click` or similar
@@ -128,9 +128,10 @@ Hints:
 - Containers mount **device drivers** - such as `usr/lib/aarch64-linux-gnu/tegra/*` as well as devices **`/dev/nv*`** at runtime to access the GPU and Tensor Cores - see `workflow/deploy/device-query/kustomize/base/deployment.yaml` for details
 - Kubernetes deployments are defined using **kustomize** - you can thus define kustomize [**overlays**](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/#bases-and-overlays) for deployments on other clusters or scale-out easily
 - Kustomize overlays can be easily referenced using [**Skaffold profiles**](https://skaffold.dev/docs/how-tos/profiles/)
-- Most containers provide targets for [**Container Structure Tests**](https://github.com/GoogleContainerTools/container-structure-test) - execute `make device-query-build-and-test` as an example 
+- All containers provide targets for [**Container Structure Tests**](https://github.com/GoogleContainerTools/container-structure-test) - execute `make device-query-build-and-test` as an example 
+- For easier consumption all container images are published on [**DockerHub](https://hub.docker.com/u/helmuthva) - if you want to publish your own create a file called `.docker-hub.auth` in this directory (see `docker-hub.auth.template`) and execute the approriate make target, e.g. `make ml-base-publish`
 - If you did **not** use **[Project Max](https://github.com/helmuthva/ceil/tree/max)** to provision your bare-metal Kubernetes cluster make sure your cluster provides a DNSMASQ and DHCP server, firewalling, VPN and private Docker registry as well as support for Kubernetes features such as persistent volumes, ingress and loadbalancing as required during build and in deployments - adapt occurrences of the name `max-one` accordingly to wire up with your infrastructure
-
+- The webservice of `tensorflow-serving` accesses TensorFlow Serving via its REST or alternatively gRPC API - - have a look at the directory `workflow/deploy/tensorflow-serving/src/webservice` for details of the Python implementation
 
 ## Optional: Configure swap
 
@@ -195,3 +196,4 @@ Hints:
 - https://www.kubeflow.org/docs/components/serving/tfserving_new/ (kubeflow,tf-serving)
 - https://www.seldon.io/open-source/ (seldon,ml)
 - https://www.electronicdesign.com/industrial-automation/nvidia-egx-spreads-ai-cloud-edge (egx,edge-ai)
+- https://min.io/ (s3,lambda)

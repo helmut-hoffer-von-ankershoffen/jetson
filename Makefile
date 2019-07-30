@@ -249,15 +249,27 @@ tensorflow-serving-deploy: ## Build and deploy tensorflow-serving
 	kubectl create secret generic tensorflow-serving.polarize.ai --from-file workflow/deploy/tensorflow-serving/.basic-auth --namespace=jetson-tensorflow-serving || true
 	cd workflow/deploy/tensorflow-serving && skaffold run
 
-tensorflow-serving-open: ## Open browser pointing to tensorflow-serving webservice
-	python -mwebbrowser http://tensorflow-serving.nano-one.local/
+tensorflow-serving-health-check: ## Check health
+	@echo "Checking health via Webservice API ..."
+	@curl http://tensorflow-serving.nano-one.local/api/v1/health/healthz
+	@echo ""
+
+tensorflow-serving-docs-open: ## Open browser tabs showing API documentation of the webservice
+	@echo "Opening OpenAPI documentation of Webservice API ..."
+	python -mwebbrowser http://tensorflow-serving.nano-one.local/docs
+	python -mwebbrowser http://tensorflow-serving.nano-one.local/redoc
+	@curl http://tensorflow-serving.nano-one.local/api/v1/openapi.json
+	@echo ""
 
 tensorflow-serving-predict: ## Send prediction REST and webservice requests
-	@echo "Predicting via REST API ..."
-	@curl -d '{"instances": [1.0, 2.0, 5.0]}' -X POST http://tensorflow-serving.nano-one.local:8501/v1/models/half_plus_two:predict
+	@echo "Predicting via TFS REST API ..."
+	@curl -d '{"instances": [1.0, 2.0, 5.0, 10.0]}' -X POST http://tensorflow-serving.nano-one.local:8501/v1/models/half_plus_two:predict
 	@echo ""
-	@echo "Predicting via Webservice API ..."
-	@curl -d '{"instances": [1.0, 2.0, 5.0]}' -X POST http://tensorflow-serving.nano-one.local/predict
+	@echo "Predicting via Webservice API accessing REST endpoint of TFS ..."
+	@curl -d '{"instances": [1.0, 2.0, 5.0, 10.0]}' -X POST http://tensorflow-serving.nano-one.local/api/v1/prediction/predict
+	@echo ""
+	@echo "Predicting via Webservice API accessing gRPC endpoint of TFS ..."
+	@curl -d '{"instances": [1.0, 2.0, 5.0, 10.0]}' -X POST http://tensorflow-serving.nano-one.local/api/v1/prediction/grpc/predict
 	@echo ""
 
 tensorflow-serving-log-show: ## Show log of pod
@@ -275,6 +287,10 @@ tensorflow-serving-delete: ## Delete tensorflow-serving deployment
 	cd workflow/deploy/tensorflow-serving && skaffold delete
 	kubectl delete namespace jetson-tensorflow-serving || true
 
+
+l4t-build-and-test: ## Cross-build l4t on macOS and test on nano
+	cd workflow/deploy/l4t && skaffold build
+	workflow/deploy/l4t/container-structure-test.mac l4t
 
 l4t-deploy: ## Cross-build l4t on macOS and deploy
 	kubectl create namespace jetson-l4t || true

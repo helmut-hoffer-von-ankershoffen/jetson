@@ -1,6 +1,6 @@
 schemaVersion: 2.0.0
 
 fileExistenceTests:
-  - name: 'no local tensorflow-serving binary'
+  - name: 'local tensorflow-serving binary'
     path: /usr/local/bin/tensorflow_model_server
     shouldExist: true

@@ -61,9 +61,11 @@
       - net-tools
       - nmap
       - ntp
+      - libnotify-bin
       - python-pip
       - python-setuptools
       - sendmail-bin
+      - sensible-mda
       - software-properties-common
       - sudo
       - telnet

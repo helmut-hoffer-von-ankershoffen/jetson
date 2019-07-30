@@ -42,6 +42,30 @@ spec:
               name: grpc
             - containerPort: 8501
               name: rest
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health/healthz
+              port: 80
+              httpHeaders:
+                - name: User-Agent
+                  value: "k8s (readiness probe)"
+            timeoutSeconds: 5
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health/healthz
+              port: 80
+              httpHeaders:
+                - name: User-Agent
+                  value: "k8s (liveness probe)"
+            timeoutSeconds: 5
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            successThreshold: 1
+            failureThreshold: 2
       volumes:
         - name: nvhost-ctrl
           hostPath:
