@@ -22,12 +22,12 @@ class Response(BaseModel):
     predictions: List[float] = []
 
 @router.post(
-    "/predict",
+    '/predict',
     response_model = Response,
-    operation_id="gRPCPredict",
-    tags=["prediction"],
-    summary = "Predict via gRPC",
-    description ="Predict given trained TensorFlow model. Accesses gRPC endpoint of TensorFlow Serving."
+    operation_id = 'gRPCPredict',
+    tags = [ 'prediction' ],
+    summary = 'Predict via gRPC',
+    description = 'Predict given trained TensorFlow model. Accesses gRPC endpoint of TensorFlow Serving.'
 )
 async def gRPCPredict(request: Request):
     stub = prediction_service_pb2_grpc.PredictionServiceStub(
@@ -43,5 +43,5 @@ async def gRPCPredict(request: Request):
     )
     predictResult = stub.Predict(predictRequest, PREDICT_TIMEOUT)
     return {
-        "predictions": list(predictResult.outputs['y'].float_val)
+        'predictions': list(predictResult.outputs['y'].float_val)
     }

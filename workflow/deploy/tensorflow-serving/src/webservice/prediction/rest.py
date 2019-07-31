@@ -18,19 +18,19 @@ class Response(BaseModel):
     predictions: List[float] = []
 
 @router.post(
-    "/predict",
+    '/predict',
     response_model = Response,
-    operation_id="restPredict",
-    tags=["prediction"],
-    summary = "Predict via REST",
-    description = "Predict given trained TensorFlow model. Accesses REST endpoint of TensorFlow Serving."
+    operation_id = 'restPredict',
+    tags = [ 'prediction'  ],
+    summary = 'Predict via REST',
+    description = 'Predict given trained TensorFlow model. Accesses REST endpoint of TensorFlow Serving.'
 )
 async def restPredict(request: Request):
     return {
-        "predictions": json.loads(
+        'predictions': json.loads(
             requests
                 .post(
-                   f'http://{SERVING_HOST}:{SERVING_REST_PORT}/v1/models/{model_name}:predict',
+                   f"http://{SERVING_HOST}:{SERVING_REST_PORT}/v1/models/{model_name}:predict",
                    json = request.dict(),
                    timeout = PREDICT_TIMEOUT
                )
