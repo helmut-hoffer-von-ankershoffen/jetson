@@ -1,0 +1,9 @@
+- name: "Check if SDK manager has been downloaded by user"
+  stat:
+      path: "/media/sf_downloads/{{ sdk_manager.deb_filename }}"
+  register: sdkm
+
+- name: "SDK Manager not found in /media/sf_downloads/{{ sdk_manager.deb_filename }}"
+  fail:
+     msg: "You failed to download the SDK manager into workflow/guest/downloads or you need to update sdk_manager.deb_filename in workflow/guest/group_vars/all.yml as a newer version was published  - exiting. Download using  **make guest-sdk-manager-download**. After that execute **make guest-destroy; make guest-build** to try again."
+  when: sdkm.stat.exists == False

@@ -1,25 +1,38 @@
 #!/usr/bin/env bash
 
+# Regular builder
+
 ## Project to build
 project=$1
 
+## Jetson model
+if [[ -z "${JETSON_MODEL}" ]]; then
+  JETSON_MODEL="nano"
+fi
+model=${2:-${JETSON_MODEL}}
+
+## Jetson model
+from=${3:-${FROM}}
+
+## Concurrent Jobs
+jobs=${4:-1}
+
 cd $(dirname "$0")/../$project
-echo "Building $IMAGES for project $project ..."
+echo "Building $IMAGES for project $project and Jetson model ${model} ..."
 
-## Sync src from development machine to nano
-echo "Synching from devlopment machine to nano for project $project ..."
-rsync -rlptza --delete -P src/ build@nano-one.local:~/$project
+## Sync src from development machine to device
+echo "Synching from development machine to ${model} for project $project ..."
+rsync -rlptza --delete -P src/ build@${model}-one.local:~/$project
 
-## Build Docker image on nano
-ssh build@nano-one.local << EOF
-  echo "Building Docker image on nano for project $project ..."
+## Build Docker image on device
+ssh build@${model}-one.local << EOF
+  echo "Building Docker image on ${model} for project $project ..."
   if [ -z "$2" ]; then
     echo "Not overriding FROM ..."
     docker build -t $project ~/$project
   else
-    from=$2
     echo "Using FROM $from as build argument ..."
-    docker build -t $project ~/$project --build-arg FROM=$from
+    docker build -t $project ~/$project --build-arg FROM=$from --build-arg JOBS=$jobs
   fi
 EOF
 
@@ -27,10 +40,11 @@ EOF
 for image in $(echo $IMAGES | tr " " "\n")
 do
     echo "Tagging as $image for project $project..."
-    ssh build@nano-one.local "docker tag $project $image"
-    if $PUSH_IMAGE
-    then
+    ssh build@${model}-one.local "docker tag $project $image"
+    if $PUSH_IMAGE; then
         echo "Pushing $image for project $project..."
-        ssh build@nano-one.local "docker push $image"
+        ssh build@${model}-one.local "docker push $image"
     fi
 done
+
+echo "Building $IMAGES for project $project done."

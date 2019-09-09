@@ -1,0 +1,40 @@
+- name: "Install support for serial devices connected via USB"
+  apt:
+    state: latest
+    pkg:
+      - linux-image-extra-virtual
+      - minicom
+  register: serial
+
+- name: "Reboot given added modules"
+  reboot:
+    reboot_timeout: 300
+  register: kernel
+  when: serial.changed
+
+- name: "Install matching kernel headers given added modules"
+  shell: "apt-get install -y linux-headers-$(uname -r)"
+  args:
+    warn: false
+
+- name: "Build VirtualBox guest additions again given updated kernel"
+  shell: "/sbin/rcvboxadd quicksetup all"
+  when: kernel.changed
+  register: guestadditions
+
+- name: "Reboot given added guest additions"
+  reboot:
+    reboot_timeout: 300
+  when: guestadditions.changed
+
+- name: "Allow user vagrant to dialout using minicom"
+  user:
+    name: vagrant
+    groups: dialout
+    append: yes
+
+- name: "Install xavier-dialout script connecting via /dev/{{ dialout.device }} with {{ dialout.baud }} baud"
+  template:
+    src: xavier-dialout.j2
+    dest: /usr/local/bin/xavier-dialout
+    mode: '0755'

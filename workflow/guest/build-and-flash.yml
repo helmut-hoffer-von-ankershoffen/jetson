@@ -1,0 +1,14 @@
+---
+- name: Build custom kernel, modules and JetPack image
+  hosts: all
+  become: yes
+  roles:
+    - role: build
+  tags: [build]
+
+- name: Flash custom kernel and rootfs
+  hosts: all
+  become: yes
+  roles:
+    - role: flash
+  tags: [flash]

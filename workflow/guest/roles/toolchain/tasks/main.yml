@@ -1,0 +1,17 @@
+- name: "Create /opt/toolchain directory"
+  file:
+    path: /opt/toolchain
+    state: directory
+    mode:  '775'
+
+- name: "Download and unarchive toolchain into /opt/toolchain/ from http://releases.linaro.org/components/toolchain/binaries/{{ toolchain.version.major }}/aarch64-linux-gnu/gcc-linaro-{{ toolchain.version.full }}-x86_64_aarch64-linux-gnu.tar.xz"
+  unarchive:
+    src: "http://releases.linaro.org/components/toolchain/binaries/{{ toolchain.version.major }}/aarch64-linux-gnu/gcc-linaro-{{ toolchain.version.full }}-x86_64_aarch64-linux-gnu.tar.xz"
+    remote_src: yes
+    dest: /opt/toolchain
+
+- name: "Provide toolchain as /opt/toolchain/gcc/ from /opt/toolchain/gcc-linaro-{{ toolchain.version.full }}-x86_64_aarch64-linux-gnu"
+  file:
+    src: "/opt/toolchain/gcc-linaro-{{ toolchain.version.full }}-x86_64_aarch64-linux-gnu"
+    dest: /opt/toolchain/gcc
+    state: link

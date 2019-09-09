@@ -1,0 +1,57 @@
+- name: "Install dummy XServer"
+  become: yes
+  apt:
+    state: latest
+    pkg:
+      - xvfb
+
+# SDK Manager CLI functionality broken ... waiting for NVIDIA to fix, working around using user intervention
+#
+# - name: "Download SDK components via NVIDIA SDK Manager"
+#   shell:  |
+#     Xvfb :4711 -ac & ( echo '{{ password }}' | DISPLAY=:4711 sdkmanager --cli downloadonly --user {{ username }} --logintype {{ download.logintype }} --product Jetson --version {{ download.version }} --targetos Linux --target {{ download.target}} --flash skip --license accept --downloadfolder /media/sf_downloads); kill $!
+#   register: download
+#
+# - name: "Download failed"
+#   fail:
+#     msg: "Wrong password {{ password }} for username {{ username }} - exiting, please retry after I died."
+#   when: download.stdout | join('') is search('Please enter password')
+#
+# - name: "Download succeeded"
+#   debug:
+#     msg: "{{ download.stdout }}"
+
+- name: "Wait for manual download of components via SDK Manager by user"
+  pause:
+    prompt: "Start the SDK Manager in the VirtualBox window by logging in as user **vagrant** with password **vagrant**, clicking the menu button on the bottom left and clicking the green **SDKManager** icon. Login with your NVIDIA account and download all SDK components **without** flashing - enter <return> in this terminal when done"
+
+- name: "Check if SDK components have been downloaded"
+  find:
+    paths: /home/vagrant/Downloads/nvidia/sdkm_downloads
+    patterns: '*arm64.deb'
+  register: sdkm_components
+
+- name: "No SDK components downloaded into /home/vagrant/Downloads/nvidia/sdkm_downloads"
+  when: sdkm_components.matched < 1
+  fail:
+     msg: "You did not download any SDK component via the SDK Manager - exiting. Execute **make guest-build** to try again after downloading."
+
+- name: "Synchronize SDK components into /opt/nvidia/Linux_for_Tegra/rootfs/var/sdk-components/ for build, flash and later installation"
+  synchronize:
+    src: /home/vagrant/Downloads/nvidia/sdkm_downloads/
+    dest: /opt/nvidia/Linux_for_Tegra/rootfs/var/sdk-components/
+    rsync_opts:
+      - "--include=*arm64.deb"
+      - "--exclude=*"
+  become: yes
+  delegate_to: "{{ inventory_hostname }}"
+
+- name: "Synchronize SDK components into /media/sf_downloads for later sync to devices"
+  synchronize:
+    src: /home/vagrant/Downloads/nvidia/sdkm_downloads/
+    dest: /media/sf_downloads/
+    rsync_opts:
+      - "--include=*arm64.deb"
+      - "--exclude=*"
+  become: yes
+  delegate_to: "{{ inventory_hostname }}"

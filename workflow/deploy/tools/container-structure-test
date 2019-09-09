@@ -2,17 +2,23 @@
 
 ## Project to build
 project=$1
-user=$2
-password=$3
+
+if [[ -z "${JETSON_MODEL}" ]]; then
+  JETSON_MODEL="nano"
+fi
+
+## Jetson model
+model=${2:-${JETSON_MODEL}}
+
 cd $(dirname "$0")/../$project
 
-## Sync src from development machine to nano
-echo "Synching from devlopment machine to nano for project $project ..."
-rsync -rlptza --delete -P src/ build@nano-one.local:~/$project
+## Sync src from development machine to device
+echo "Synching from development machine to ${model} for project $project ..."
+rsync -rlptza --delete -P src/ build@${model}-one.local:~/$project
 
-## Execute container structure tests on nano
-ssh build@nano-one.local << EOF
-  echo "Executing container structure tests on nano for project $project ..."
+## Execute container structure tests on device
+ssh build@${model}-one.local << EOF
+  echo "Executing container structure tests on ${model} for project $project ..."
   cd $project
   for file in test/*.yaml; do
     container-structure-test test --image $project --verbosity debug --config test/\${file##*/}

@@ -1,2 +1,9 @@
 [all]
 nano-one.local ansible_ssh_user="provision"
+xavier-one.local ansible_ssh_user="provision"
+
+[nanos]
+nano-one.local ansible_ssh_user="provision"
+
+[xaviers]
+xavier-one.local ansible_ssh_user="provision"

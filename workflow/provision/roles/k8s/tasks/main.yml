@@ -22,6 +22,12 @@
     dest: /etc/docker/daemon.json
   register: daemon
 
+- name: "Duplicate into /etc/docker/daemon.k8s.json for later use during remote builds"
+  copy:
+    src: daemon.json
+    dest: /etc/docker/daemon.k8s.json
+  register: daemon
+
 - name: "Restart docker"
   service:
     name: docker
@@ -82,13 +88,23 @@
     group: root
     mode: "0755"
 
-- name: "Inject join configuration"
+- name: "Inject join configuration for Nanos"
   template:
-    src: join.conf.j2
+    src: join.nanos.conf.j2
     dest: /etc/kubernetes/join.conf
     owner: root
     group: root
     mode: "0755"
+  when: "'nanos' in group_names"
+
+- name: "Inject join configuration for Xaviers"
+  template:
+    src: join.xaviers.conf.j2
+    dest: /etc/kubernetes/join.conf
+    owner: root
+    group: root
+    mode: "0755"
+  when: "'xaviers' in group_names"
 
 - name: "Inject extra configuration"
   template:

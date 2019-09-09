@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tensorflow-serving
+  namespace: jetson-tensorflow-serving
+spec:
+  template:
+    metadata:
+      name: tensorflow-serving
+      labels:
+        app: tensorflow-serving
+    spec:
+      containers:
+        - name: tensorflow-serving
+          image: max-one.local:5001/jetson/xavier/tensorflow-serving
+      nodeSelector:
+        jetson_model: "xavier"

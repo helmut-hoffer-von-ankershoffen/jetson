@@ -1,11 +1,18 @@
 ---
 
-- name: "Check all hosts accessible"
-  assert:
-    that:
-      - ansible_play_hosts == ansible_play_hosts_all
+- name: "Set performance mode {{ nv.performance.mode }} and max frequencies"
+  shell: |
+    nvpmodel -m {{ nv.performance.mode }}
+    /usr/bin/jetson_clocks
+    /usr/bin/jetson_clocks --show
+  register: performance
 
-- name: "Install packages"
-  shell: nvpmodel -m {{ nv.performance.mode }}
+# - name: "Frequencies"
+#   debug:
+#     msg: "{{ performance.stdout }}"
 
-
+- name: "Set max frequencies on boot"
+  cron:
+    name: "jetson_clocks"
+    special_time: reboot
+    job: "/usr/bin/jetson_clocks"

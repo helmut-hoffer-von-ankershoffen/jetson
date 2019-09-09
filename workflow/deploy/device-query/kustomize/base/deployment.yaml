@@ -17,7 +17,7 @@ spec:
       hostname: device-query
       containers:
         - name: device-query
-          image: max-one.local:5001/jetson/device-query
+          image: max-one.local:5001/jetson/nano/device-query
           volumeMounts:
             - mountPath: /dev/nvhost-ctrl
               name: nvhost-ctrl
@@ -31,8 +31,6 @@ spec:
               name: nvhost-gpu
             - mountPath: /dev/nvhost-as-gpu
               name: nvhost-as-gpu
-            - mountPath: /usr/lib/aarch64-linux-gnu/tegra
-              name: drivers
           securityContext:
             privileged: true
       volumes:
@@ -54,8 +52,5 @@ spec:
         - name: nvhost-as-gpu
           hostPath:
             path: /dev/nvhost-as-gpu
-        - name: drivers
-          hostPath:
-            path: /usr/lib/aarch64-linux-gnu/tegra
       nodeSelector:
-        jetson: "true"
+        jetson_model: "nano"

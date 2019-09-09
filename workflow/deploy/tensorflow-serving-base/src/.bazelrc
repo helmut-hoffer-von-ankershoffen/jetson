@@ -7,7 +7,9 @@ build:cuda --crosstool_top=@local_config_cuda//crosstool:toolchain
 build:cuda --define=using_cuda=true --define=using_cuda_nvcc=true
 
 # Jetson does not support NCCL
-build:jetson --define=maxrregcount=80 --define=no_nccl_support=true
+build:jetson --define=no_nccl_support=true
+build:nano --define=maxrregcount=80
+build:xavier --define=maxrregcount=255
 
 # Processor native optimizations (depends on build host capabilities).
 build:nativeopt --copt=-march=native

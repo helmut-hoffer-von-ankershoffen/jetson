@@ -2,6 +2,6 @@
 resources:
 - ingresses.yaml
 - services.yaml
-- deployments.yaml
+- deployment.yaml
 - pvcs.yaml
 - namespace.yaml

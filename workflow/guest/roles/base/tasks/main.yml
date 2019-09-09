@@ -1,0 +1,31 @@
+- name: "Update package sources"
+  apt:
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+    cache_valid_time: 86400
+
+- name: "Install apt tools"
+  apt:
+    state: latest
+    pkg:
+      - aptitude
+      - apt-transport-https
+      - apt-utils
+      - python-apt
+      - xz-utils
+      - lbzip2
+
+- name: "Update package sources"
+  apt:
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+    cache_valid_time: 86400
+
+- name: "Install basic packages"
+  apt:
+    state: latest
+    pkg:
+      - nano
+      - python

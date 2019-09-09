@@ -1,0 +1,71 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+      - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Install packages"
+  apt:
+    state: latest
+    pkg:
+      - parted
+      - rsync
+  register: install
+
+- name: "Set fixed device name /dev/ssd[1] for SSD given configured ssd.id_serial_short"
+  template:
+    src: ssd.rules.j2
+    dest: /lib/udev/rules.d/ssd.rules
+  register: ssdDevice
+
+- name: "Unmount"
+  mount:
+    path: /mnt/ssd
+    src: "/dev/ssd1"
+    fstype: ext4
+    state: absent
+    opts: nofail
+  ignore_errors: true
+
+- name: "Reboot"
+  reboot:
+    reboot_timeout: 300
+  register: reboot
+
+- name: "Wipe signature and partitions"
+  command: >
+    wipefs --all --force /dev/ssd
+
+- name: "Partition and flag as boot"
+  parted:
+    device: "/dev/ssd"
+    number: 1
+    state: present
+    label: gpt
+    flags: [ boot ]
+
+- name: "Create ext4 filesystem"
+  filesystem:
+    fstype: ext4
+    dev: "/dev/ssd1"
+    force: yes
+
+- name: "Mount"
+  mount:
+    path: /mnt/ssd
+    src: "/dev/ssd1"
+    fstype: ext4
+    state: mounted
+    opts: nofail
+
+- name: "Sync microSD to SSD"
+  shell: rsync -axHAWX --delete --numeric-ids --exclude=/proc / /mnt/ssd
+
+#- name: "Unmount"
+#  mount:
+#    path: /mnt/ssd
+#    src: "/dev/ssd1"
+#    fstype: ext4
+#    state: absent
+#    opts: nofail

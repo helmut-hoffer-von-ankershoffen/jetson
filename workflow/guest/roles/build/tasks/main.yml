@@ -1,0 +1,50 @@
+- name: "Install dependencies of kernel menuconfig"
+  apt:
+    state: latest
+    pkg:
+      - libncurses5-dev
+
+- name: "Create build directory for kernel"
+  file:
+    path: /opt/nvidia/Linux_for_Tegra/build/kernel/
+    state: directory
+    mode:  '775'
+
+- name: "Create build directory for rootfs"
+  file:
+    path: /opt/nvidia/Linux_for_Tegra/build/rootfs/
+    state: directory
+    mode:  '775'
+
+- name: "Insert custom kernel configuration"
+  copy:
+    src: .config
+    dest: /opt/nvidia/Linux_for_Tegra/build/kernel/.config
+    mode: "0644"
+
+- name: "Build kernel {{ l4t.kernel_version }} and modules"
+  shell: |
+    L4T=/opt/nvidia/Linux_for_Tegra
+    KERNEL_OUT=${L4T}/build/kernel
+    MODULES_OUT=${L4T}/build/rootfs
+    CROSS_COMPILE=/opt/toolchain/gcc/bin/aarch64-linux-gnu-
+    cd ${L4T}/sources/kernel/kernel-{{ l4t.kernel_version }}
+    make ARCH=arm64 CROSS_COMPILE=${CROSS_COMPILE} O=${KERNEL_OUT} prepare
+    make ARCH=arm64 CROSS_COMPILE=${CROSS_COMPILE} O=${KERNEL_OUT} modules_prepare
+    make ARCH=arm64 CROSS_COMPILE=${CROSS_COMPILE} O=${KERNEL_OUT} -j5 Image
+    make ARCH=arm64 CROSS_COMPILE=${CROSS_COMPILE} O=${KERNEL_OUT} -j5 zImage
+    make ARCH=arm64 CROSS_COMPILE=${CROSS_COMPILE} O=${KERNEL_OUT} -j5 modules
+
+- name: "Build JetPack Image given build result of kernel and modules"
+  shell: |
+    L4T=/opt/nvidia/Linux_for_Tegra
+    KERNEL_OUT=${L4T}/build/kernel
+    MODULES_OUT=${L4T}/build/rootfs
+    CROSS_COMPILE=/opt/toolchain/gcc/bin/aarch64-linux-gnu-
+    cd ${L4T}/sources/kernel/kernel-{{ l4t.kernel_version }}
+    make ARCH=arm64 CROSS_COMPILE=${CROSS_COMPILE} O=${KERNEL_OUT} INSTALL_MOD_PATH=${MODULES_OUT} -j5 modules_install
+    cp -f ${KERNEL_OUT}/arch/arm64/boot/Image ${L4T}/kernel/Image
+    cp -f ${KERNEL_OUT}/arch/arm64/boot/zImage ${L4T}/kernel/zImage
+    cp -r ${MODULES_OUT}/lib ${L4T}/rootfs
+    cd ${L4T}
+    ./apply_binaries.sh

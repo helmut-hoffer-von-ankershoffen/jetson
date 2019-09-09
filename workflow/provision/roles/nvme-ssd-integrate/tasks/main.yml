@@ -1,0 +1,96 @@
+---
+
+- name: "Check all hosts accessible"
+  assert:
+    that:
+      - ansible_play_hosts == ansible_play_hosts_all
+
+- name: "Install packages"
+  apt:
+    state: latest
+    pkg:
+      - parted
+      - rsync
+  register: install
+
+- name: "Stat /var/lib/docker"
+  stat:
+    path: /var/lib/docker
+  register: docker
+
+- name: "Will integrate NVMe SSD to provide /var/lib/docker as it is not a symlink already ..."
+  when: docker.stat.isdir is defined and docker.stat.isdir
+  block:
+  - name: "Unmount"
+    mount:
+      path: /mnt/ssd
+      src: "/dev/nvme0n1p1"
+      fstype: ext4
+      state: absent
+      opts: nofail
+    ignore_errors: true
+
+  - name: "Reboot given unmount"
+    reboot:
+      reboot_timeout: 300
+
+  - name: "Wipe signature and partitions"
+    command: >
+      wipefs --all --force /dev/nvme0n1
+
+  - name: "Partition and flag as boot"
+    parted:
+      device: "/dev/nvme0n1"
+      number: 1
+      state: present
+      label: gpt
+      flags: [ boot ]
+
+  - name: "Create ext4 filesystem"
+    filesystem:
+      fstype: ext4
+      force: yes
+      dev: "/dev/nvme0n1p1"
+
+  - name: "Mount"
+    mount:
+      path: /mnt/ssd
+      src: "/dev/nvme0n1p1"
+      fstype: ext4
+      state: mounted
+      opts: nofail
+
+  - name: "Stop docker before synchronization"
+    service:
+      name: docker
+      state: stopped
+
+  - name: "Create /mnt/ssd/var/lib/docker"
+    file:
+      path: /mnt/ssd/var/lib/docker
+      state: directory
+
+  - name: "Synchronize /var/lib/docker -> /mnt/ssd/var/lib/docker"
+    synchronize:
+      src: /var/lib/docker/
+      dest: /mnt/ssd/var/lib/docker/
+      delete: yes
+      compress: no
+    delegate_to: "{{ inventory_hostname }}"
+
+  - name: "Remove /var/lib/docker"
+    file:
+      path: /var/lib/docker
+      state: absent
+
+  - name: "Symlink /var/lib/docker -> /mnt/ssd/var/lib/docker"
+    file:
+      path: /var/lib/docker
+      src: /mnt/ssd/var/lib/docker
+      state: link
+      force: yes
+
+  - name: "Start docker after synchronization"
+    service:
+      name: docker
+      state: started

@@ -1,0 +1,16 @@
+- name: "Install dependencies of SDK manager"
+  apt:
+    state: latest
+    pkg:
+      - libgtk-3-0
+      - libx11-xcb-dev
+      - libxss-dev
+      - libnss3-dev
+      - libcanberra-gtk-module
+      - libcanberra-gtk3-module
+      - nano
+  register: prerequisites
+
+- name: "Install SDK Manager from /media/sf_downloads/{{ sdk_manager.deb_filename }}"
+  apt:
+    deb: "/media/sf_downloads/{{ sdk_manager.deb_filename }}"

@@ -1,0 +1,28 @@
+---
+
+sdk_manager:
+  deb_filename: 'sdkmanager_0.9.14-4961_amd64.deb'
+
+l4t:
+  uri: 'https://developer.nvidia.com/embedded/dlc/r32-2-1_Release_v1.0/TX2-AGX/Tegra186_Linux_R32.2.1_aarch64.tbz2'
+  rootfs_uri: 'https://developer.nvidia.com/embedded/dlc/r32-2-1_Release_v1.0/TX2-AGX/Tegra_Linux_Sample-Root-Filesystem_R32.2.1_aarch64.tbz2'
+  git_tag: 'tegra-l4t-r32.2.1'
+  kernel_version: '4.9'
+
+toolchain:
+  version:
+    major: '7.3-2018.05'
+    full: '7.3.1-2018.05'
+
+flash:
+  board: 'jetson-xavier'
+  rootdev: 'mmcblk0p1' # eMMC
+
+dialout:
+  device: 'ttyACM0'
+  baud: '115200'
+
+download:
+  logintype: 'devzone'
+  version: 'GA_4.2.2'
+  target: 'P2888' # Xavier Developer Kit, 16 GB

@@ -1,0 +1,13 @@
+---
+- name: Download SDK components via SDK manager
+  hosts: all
+  become: no
+  # vars_prompt:
+  #   - name: username
+  #     prompt: "What is your NVIDIA username?"
+  #     private: no
+  #   - name: password
+  #     prompt: "What is your NVIDIA password?"
+  roles:
+    - role: download
+  tags: [download]

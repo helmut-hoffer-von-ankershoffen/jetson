@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+# Builder using buildx for bind-mounting during build
+## Project to build
+project=$1
+
+## Jetson model
+if [[ -z "${JETSON_MODEL}" ]]; then
+  JETSON_MODEL="nano"
+fi
+model=${2:-${JETSON_MODEL}}
+
+## Concurrent Jobs
+jobs=${3:-1}
+
+cd $(dirname "$0")/../$project
+echo "Building $IMAGES for project $project and Jetson model ${model} ..."
+
+## Sync src from development machine to device
+echo "Synching from development machine to ${model} for project $project ..."
+rsync -rlptza --delete --exclude=host -P src/ build@${model}-one.local:~/$project
+
+## Sync directories on host into Docker build context for later bind-mounting during build
+ssh build@${model}-one.local << EOF
+  mkdir ~/$project/host/ ||  true
+
+  echo 'Synching tegra libraries ...'
+  rsync -aq /usr/lib/aarch64-linux-gnu/tegra/ ~/$project/host/tegra
+
+  echo 'Synching CUDA apt repositories ...'
+  rsync -aq /var/cuda-repo-10-0-local-10.0.326/ ~/$project/host/cuda-repo
+
+  echo 'Synching CUDA ml apt repositories ...'
+  rsync -aq /var/cuda-ml-local-repo/ ~/$project/host/cuda-ml-repo
+
+  echo 'Exporting repo keys ...'
+  export APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
+  apt-key exportall > ~/$project/host/apt-trusted-keys
+EOF
+
+## Deactivate reference to plain http Docker registry mirror in cluster as buildkit does not support it - see https://github.com/moby/moby/issues/38303
+ssh build@${model}-one.local << EOF
+  echo "Deactivating reference to plain http Docker registry mirror in cluster for $project ..."
+  sudo su
+  echo "{ \"labels\": [ \"os=linux\", \"arch=arm64\" ], \"experimental\": true }" > /etc/docker/daemon.json
+  service docker restart
+  sleep 5
+EOF
+
+## Build Docker image on device - using buildkit with experimental features to be able to bind-mount in Dockerfile
+ssh build@${model}-one.local << EOF
+  echo "Building Docker image on ${model} for project $project ..."
+  DOCKER_BUILDKIT=1 docker build -t $project ~/$project --build-arg JOBS=$jobs
+EOF
+
+## Reactivate original Docker configuration to allow pushing private Docker registry in cluster
+ssh build@${model}-one.local << EOF
+  echo "Reactivating original Docker configuration for $project ..."
+  sudo su
+  cp -f /etc/docker/daemon.k8s.json /etc/docker/daemon.json
+  service docker restart
+  sleep 5
+EOF
+
+## Tag and possibly push images
+for image in $(echo $IMAGES | tr " " "\n")
+do
+    echo "Tagging as $image for project $project..."
+    ssh build@${model}-one.local "docker tag $project $image"
+    if $PUSH_IMAGE; then
+        echo "Pushing $image for project $project..."
+        ssh build@${model}-one.local "docker push $image"
+    fi
+done

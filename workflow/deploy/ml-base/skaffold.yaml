@@ -5,11 +5,22 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: max-one.local:5001/jetson/ml-base
+  - image: max-one.local:5001/jetson/nano/ml-base
     custom:
-      buildCommand: ./builder ml-base
+      buildCommand: ../tools/builderx ml-base
       dependencies:
         paths:
           - src
         ignore:
           - .gitignore
+profiles:
+  - name: xavier
+    activation:
+      - env: JETSON_MODEL=xavier
+    patches:
+      - op: replace
+        path: /build/artifacts/0/image
+        value: max-one.local:5001/jetson/xavier/ml-base
+      - op: replace
+        path: /build/artifacts/0/custom/buildCommand
+        value: ../tools/builderx ml-base xavier

@@ -1,0 +1,22 @@
+- name: "Create /opt/nvidia directory"
+  file:
+    path: /opt/nvidia
+    state: directory
+    mode:  '775'
+
+- name: "Download and unarchive L4T into /opt/nvidia/Linux_for_Tegra/ from {{ l4t.uri }}"
+  unarchive:
+    src: "{{ l4t.uri }}"
+    remote_src: yes
+    dest: /opt/nvidia
+
+- name: "Download and unarchive sample rootfs into /opt/nvidia/Linux_for_Tegra/rootfs/ from {{ l4t.rootfs_uri }}"
+  unarchive:
+    src: "{{ l4t.rootfs_uri }}"
+    remote_src: yes
+    dest: /opt/nvidia/Linux_for_Tegra/rootfs
+
+- name: "Sync kernel sources into /opt/nvidia/Linux_for_Tegra/sources/ and checkout tag {{ l4t.git_tag }}"
+  shell: |
+    cd /opt/nvidia/Linux_for_Tegra
+    ./source_sync.sh -t {{ l4t.git_tag }}

@@ -22,12 +22,14 @@ ENV LD_LIBRARY_PATH="/usr/local/cuda-10.0/lib64:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/lib/:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/archiconda3/lib:${LD_LIBRARY_PATH}"
 
+#  
+ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
+
 # Setup capabilties for cuda
 ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 ENV NVIDIA_REQUIRE_CUDA "cuda>=10.0"
 ENV CUDA_VERSION 10.0
-ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
 # Install common packages
 RUN apt-get update && \
@@ -87,12 +89,13 @@ RUN apt-get update && \
     apt-get clean
 RUN ln -sf /usr/lib/gcc/aarch64-linux-gnu/5/cc1plus /usr/local/bin/cc1plus
 
+# Inject Tegra libraries as required at build-time downstream
+COPY /host/tegra /usr/lib/aarch64-linux-gnu/tegra
+
 # Register bind-mounted and public NVIDIA repositories
 COPY /host/apt-trusted-keys /tmp/
 RUN apt-key add /tmp/apt-trusted-keys && \
-    echo "deb file:///var/cuda-repo /" > /etc/apt/sources.list.d/cuda.list && \
-    echo "deb http://international.download.nvidia.com/jetson/repos/common r32 main" > /etc/apt/sources.list.d/nvidia-l4t-apt-source.list && \
-    echo "deb http://international.download.nvidia.com/jetson/repos/t210 r32 main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list
+    echo "deb file:///var/cuda-repo /" > /etc/apt/sources.list.d/cuda.list
 
 # Install all relevant CUDA libraries from repository on host, bind-mounted to reduce download time
 RUN --mount=type=bind,readonly,source=/host/cuda-repo,target=/var/cuda-repo \

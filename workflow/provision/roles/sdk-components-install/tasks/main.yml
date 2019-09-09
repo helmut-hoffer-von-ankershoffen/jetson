@@ -1,0 +1,37 @@
+---
+
+- name: "Install CUDA repo, dependencies and add public key"
+  shell: |
+    dpkg -i /var/sdk-components/cuda-repo-*.deb
+    apt-get install -fy
+    apt-key add /var/cuda-repo*/*.pub
+  register: cuda_repo
+
+# - name: "Installation result"
+#   debug:
+#     msg: "{{ cuda_repo.stdout }}"
+
+- name: "Install SDK components in CUDA repo and dependencies"
+  shell: |
+    dpkg -i /var/cuda-repo-10-0-local-10.0.326/*.deb
+    apt-get install -fy
+  register: cuda_components
+
+# - name: "Installation result"
+#   debug:
+#     msg: "{{ cuda_components.stdout }}"
+
+- name: "Remove CUDA repo package"
+  shell: rm -f /var/sdk-components/cuda-repo-*.deb
+  args:
+    warn: false
+
+- name: "Install remaining SDK components and dependencies"
+  shell: |
+    dpkg -i /var/sdk-components/*.deb
+    apt-get install -fy
+  register: sdk_components_install
+
+# - name: "Installation result"
+#   debug:
+#     msg: "{{ sdk_components_install.stdout }}"

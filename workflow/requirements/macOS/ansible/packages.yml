@@ -29,12 +29,17 @@ homebrew_cask_appdir: /Applications
 homebrew_cask_apps:
   - docker                          # Docker container runtime
   - sublime-text                    # Simple graphical editor
+  - atom                            # IDE
   - google-chrome                   # Common web browser
   - github                          # UI for git/GitHub
   - balenaetcher                    # Flash tool
   - vnc-viewer                      # Real VNC client
   - microsoft-remote-desktop-beta   # Microsoft RDP client
   - anaconda                        # Python/R data science platform
+  - virtualbox                      # VM
+  - virtualbox-extension-pack       # VM extensions such as USB support
+  - vagrant                         # VMM
+  - vagrant-manager                 # VMMM
 
 composer_packages: []
 
@@ -55,4 +60,3 @@ cargo_packages:
 download_executables:
   - url: https://storage.googleapis.com/container-structure-test/latest/container-structure-test-darwin-amd64
     dest: /usr/local/bin/container-structure-test
-

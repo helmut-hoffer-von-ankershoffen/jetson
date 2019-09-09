@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: l4t
+  namespace: jetson-l4t
+spec:
+  selector:
+    matchLabels:
+      app: l4t
+  template:
+    metadata:
+      name: l4t
+      labels:
+        app: l4t
+    spec:
+      hostname: l4t
+      containers:
+        - name: l4t
+          image: max-one.local:5001/jetson/xavier/l4t
+      nodeSelector:
+        jetson_model: "xavier"

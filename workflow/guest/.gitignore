@@ -1,0 +1,4 @@
+.vagrant
+*.log
+downloads/*
+!downloads/.gitkeep

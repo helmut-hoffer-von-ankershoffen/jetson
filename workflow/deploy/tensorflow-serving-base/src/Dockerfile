@@ -1,4 +1,7 @@
-FROM max-one.local:5001/jetson/ml-base
+ARG FROM=max-one.local:5001/jetson/nano/ml-base
+FROM ${FROM}
+
+ARG JOBS=1
 
 MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
@@ -30,7 +33,8 @@ ENV CUDNN_VERSION=7.5.0
 # CUDA as provided by ml-base
 ENV TF_NEED_CUDA=1
 # CUDA capabilities of Jetson (Nano, TX1, TX2 and Xavier)
-ENV TF_CUDA_COMPUTE_CAPABILITIES="5.3,6.2,7.2"
+#ENV TF_CUDA_COMPUTE_CAPABILITIES="5.3,6.2,7.2"
+ENV TF_CUDA_COMPUTE_CAPABILITIES="7.2"
 # Use TensorRT as provided in ml-base
 ENV TF_NEED_TENSORRT=1
 # Required for ncc
@@ -49,12 +53,13 @@ RUN mkdir -p /tensorflow-serving && \
     bazel build \
     --color=yes \
     --curses=yes \
-    --jobs="1" \
+    --jobs="${JOBS}" \
     --verbose_failures \
     --output_filter=DONT_MATCH_ANYTHING \
     --config=cuda \
     --config=nativeopt \
     --config=jetson \
+    --config=xavier \
     --copt="-fPIC" \
     tensorflow_serving/model_servers:tensorflow_model_server && \
     cp /tensorflow-serving/bazel-bin/tensorflow_serving/model_servers/tensorflow_model_server /usr/local/bin/tensorflow_model_server && \
@@ -62,12 +67,13 @@ RUN mkdir -p /tensorflow-serving && \
     bazel build \
     --color=yes \
     --curses=yes \
-    --jobs="1" \
+    --jobs="${JOBS}" \
     --verbose_failures \
     --output_filter=DONT_MATCH_ANYTHING \
     --config=cuda \
     --config=nativeopt \
     --config=jetson \
+    --config=xavier \
     --copt="-fPIC" \
     tensorflow_serving/tools/pip_package:build_pip_package && \
     bazel-bin/tensorflow_serving/tools/pip_package/build_pip_package \
@@ -95,5 +101,3 @@ EXPOSE 8500
 EXPOSE 8501
 
 CMD ["/usr/bin/supervisord"]
-
-

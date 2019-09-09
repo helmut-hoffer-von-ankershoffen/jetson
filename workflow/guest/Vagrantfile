@@ -1,0 +1,131 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Use version 2 of configuration specification
+Vagrant.configure("2") do |config|
+
+  # Ensure installation of required plugins
+  required_plugins = %w( vagrant-vbguest vagrant-disksize )
+  _retry = false
+  required_plugins.each do |plugin|
+      unless Vagrant.has_plugin? plugin
+          system "vagrant plugin install #{plugin}"
+          _retry=true
+      end
+  end
+
+  def usbfilter_exists(vendor_id)
+    # See https://github.com/hashicorp/vagrant/issues/5774
+    # Determine if a usbfilter with the provided Vendor combination
+    # already exists on this VM.
+    #
+    # TODO: Use a more reliable way of retrieving this information.
+    #
+    # NOTE: The "machinereadable" output for usbfilters is more
+    #       complicated to work with (due to variable names including
+    #       the numeric filter index) so we don't use it here.
+    #
+    machine_id_filepath = File.expand_path File.dirname(__FILE__) + "/.vagrant/machines/default/virtualbox/id"
+
+    if not File.exists? machine_id_filepath
+      # VM hasn't been created yet.
+      return false
+    end
+
+    vm_info = `VBoxManage showvminfo $(<#{machine_id_filepath})`
+    filter_match = "VendorId:                    #{vendor_id}\n"
+    return vm_info.include? filter_match
+  end
+
+  def usbfilter_add_if_not_exists(vb, vendor_id, filter_name)
+    #
+    # This is a workaround for the fact VirtualBox doesn't provide
+    # a way for preventing duplicate USB filters from being added.
+    #
+    # TODO: Implement this in a way that it doesn't get run multiple
+    #       times on each Vagrantfile parsing.
+    #
+    if not usbfilter_exists(vendor_id)
+      vb.customize [
+        "usbfilter", "add", "0",
+        "--target", :id,
+        "--name", filter_name,
+        "--vendorid", vendor_id
+      ]
+    end
+  end
+
+  # Use Ubuntu bionic as base
+  config.vm.box = 'ubuntu/bionic64'
+
+  # Provide adequate disk size
+  config.disksize.size = '60GB'
+
+  # Share downloads from host to guest such as for SDK manager package - workflow/guest/downloads mounted into /media/sf_downloads
+  config.vm.synced_folder 'downloads', '/downloads', automount: true
+
+  # Forward SSH
+  config.vm.network "forwarded_port", guest: 22, host: 2200
+
+  # Configure virtualbox
+  config.vm.provider 'virtualbox' do |vb|
+
+    # Ensure adequate memory
+    vb.memory = '4096'
+
+    # Ensure adequate CPU
+    vb.cpus = 4
+
+    # Tune VM
+    vb.customize ['modifyvm', :id, '--ostype', 'Linux_64']
+    vb.customize ['modifyvm', :id, '--paravirtprovider', 'kvm']
+    vb.customize ['modifyvm', :id, '--hwvirtex', 'on']
+
+    # Relocate logfile into this directory
+    vb.customize [
+      'modifyvm', :id, '--uartmode1', 'file',
+      File.join(Dir.pwd, 'workflow/guest/guest.log')
+    ]
+
+    # Tune graphics adapter
+    vb.customize ['modifyvm', :id, '--graphicscontroller', 'vboxvga']
+    vb.customize ['modifyvm', :id, '--vram', '128']
+    vb.customize ['modifyvm', :id, '--accelerate3d', 'on']
+    vb.customize ['modifyvm', :id, '--accelerate2dvideo', 'on']
+    # vb.customize ['modifyvm', :id, '--setvideomodehint', '1680 1050 24']
+
+    # Ensure adequate scaling for retina display
+    vb.customize ['setextradata', :id, 'GUI/ScaleFactor', '2']
+
+    # Display the VirtualBox GUI when booting the machine
+    vb.gui = true
+
+    # Enable USB 3.0 controller to connect Xavier for flashing
+    vb.customize ['modifyvm', :id, '--usbxhci', 'on']
+
+    # Add USB filters for Xavier Flashing and OEM-Setup
+    usbfilter_add_if_not_exists(vb, "0955", "Jetson AGX Xavier")
+
+    # Enable shared clipboard functionality
+    vb.customize [
+      'modifyvm', :id, '--clipboard', 'bidirectional'
+    ]
+
+    # Add DVD drive
+    vb.customize [
+      "storageattach", :id,
+      "--storagectl", "IDE",
+      "--port", "0", "--device", "1",
+      "--type", "dvddrive",
+      "--medium", "emptydrive"
+    ]
+
+  end
+
+  # Provision using Ansible on first boot or when triggered via make guest-provision (which calls vagrant provision)
+  config.vm.provision 'ansible' do |ansible|
+      ansible.playbook = 'main.yml'
+      ansible.compatibility_mode = '2.0'
+  end
+
+end

@@ -31,4 +31,3 @@
     regexp: '^(#\s*)?PasswordAuthentication'
     line: 'PasswordAuthentication no'
   notify: restart sshd
-
