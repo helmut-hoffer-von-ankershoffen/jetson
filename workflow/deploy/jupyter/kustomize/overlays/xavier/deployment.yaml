@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter
+  namespace: jetson-jupyter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter
+  template:
+    metadata:
+      name: jupyter
+      labels:
+        app: jupyter
+    spec:
+      containers:
+        - name: jupyter
+          image: max-one.local:5001/jetson/xavier/jupyter
+      nodeSelector:
+        jetson_model: "xavier"

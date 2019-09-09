@@ -5,7 +5,7 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: max-one.local:5001/jetson/l4t
+  - image: max-one.local:5001/jetson/nano/l4t
     custom:
       buildCommand: ./builder.mac
       dependencies:
@@ -20,8 +20,10 @@ deploy:
       global:
         - "--namespace=jetson-l4t"
 profiles:
-- name: max
+- name: xavier
+  activation:
+    - env: JETSON_MODEL=xavier
   patches:
     - op: replace
       path: /deploy/kustomize/path
-      value: kustomize/overlays/max
+      value: kustomize/overlays/xavier

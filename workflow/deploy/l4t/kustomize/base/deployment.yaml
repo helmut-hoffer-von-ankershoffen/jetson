@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: l4t
+  namespace: jetson-l4t
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: l4t
+  template:
+    metadata:
+      name: l4t
+      labels:
+        app: l4t
+    spec:
+      hostname: l4t
+      containers:
+        - name: l4t
+          image: max-one.local:5001/jetson/nano/l4t
+          volumeMounts:
+            - mountPath: /dev/nvhost-ctrl
+              name: nvhost-ctrl
+            - mountPath: /dev/nvhost-ctrl-gpu
+              name: nvhost-ctrl-gpu
+            - mountPath: /dev/nvhost-prof-gpu
+              name: nvhost-prof-gpu
+            - mountPath: /dev/nvmap
+              name: nvmap
+            - mountPath: /dev/nvhost-gpu
+              name: nvhost-gpu
+            - mountPath: /dev/nvhost-as-gpu
+              name: nvhost-as-gpu
+            - mountPath: /usr/lib/aarch64-linux-gnu/tegra
+              name: drivers
+          ports:
+            - containerPort: 80
+              name: http
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: nvhost-ctrl
+          hostPath:
+            path: /dev/nvhost-ctrl
+        - name: nvhost-ctrl-gpu
+          hostPath:
+            path: /dev/nvhost-ctrl-gpu
+        - name: nvhost-prof-gpu
+          hostPath:
+            path: /dev/nvhost-prof-gpu
+        - name: nvmap
+          hostPath:
+            path: /dev/nvmap
+        - name: nvhost-gpu
+          hostPath:
+            path: /dev/nvhost-gpu
+        - name: nvhost-as-gpu
+          hostPath:
+            path: /dev/nvhost-as-gpu
+        - name: drivers
+          hostPath:
+            path: /usr/lib/aarch64-linux-gnu/tegra
+      nodeSelector:
+        jetson_model: "nano"

@@ -1,0 +1,12 @@
+- name: "Install Ubuntu Desktop"
+  apt:
+    state: latest
+    install_recommends: no
+    pkg:
+      - ubuntu-desktop
+  register: ubuntu_desktop
+
+- name: "Reboot"
+  reboot:
+    reboot_timeout: 300
+  when: ubuntu_desktop.changed

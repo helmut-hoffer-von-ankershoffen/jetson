@@ -1,0 +1,5 @@
+- name: "Flash custom kernel and rootfs to device {{ flash.rootdev }} of {{ flash.board }}"
+  shell: |
+    L4T=/opt/nvidia/Linux_for_Tegra/
+    cd ${L4T}
+    ./flash.sh {{ flash.board }} {{ flash.rootdev }}

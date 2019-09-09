@@ -23,12 +23,12 @@ class Response(BaseModel):
     details: dict = None
 
 @router.get(
-    "/healthz",
+    '/healthz',
     response_model = Response,
-    operation_id = "healthz",
-    tags = ["health"],
-    summary = "Health endpoint for Kubernetes",
-    description = "Checks health of webservice and TensorFlow Serving. Use in readiness and liveness probe configuration of your deployment."
+    operation_id = 'healthz',
+    tags = [ 'health' ],
+    summary = 'Health endpoint for Kubernetes',
+    description = 'Checks health of webservice and TensorFlow Serving. Use in readiness and liveness probe configuration of your deployment.'
 )
 async def healthz():
     try:
@@ -36,7 +36,7 @@ async def healthz():
             status_body = json.loads(
                 requests
                     .get(
-                        f'http://{SERVING_HOST}:{SERVING_REST_PORT}/v1/models/{model_name}',
+                        f"http://{SERVING_HOST}:{SERVING_REST_PORT}/v1/models/{model_name}",
                         timeout = HEALTH_TIMEOUT
                     )
                     .content

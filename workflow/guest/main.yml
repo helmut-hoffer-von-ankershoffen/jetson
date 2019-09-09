@@ -1,0 +1,66 @@
+---
+
+- name: Check for SDK manager
+  hosts: all
+  become: yes
+  roles:
+    - role: sdk-manager-check
+  tags: [sdk_manager_check]
+
+- name: Keyboard mapping
+  hosts: all
+  roles:
+    - role: gantsign.keyboard
+      # European keyboard model (pc105 is widely used outside Europe as well)
+      keyboard_model: pc105
+      # Layout for Germany / german keyboard
+      keyboard_layout: de
+  module_defaults:
+    apt:
+      force_apt_get: yes
+  tags: [keyboard]
+
+- name: Base
+  hosts: all
+  become: yes
+  roles:
+    - role: base
+  module_defaults:
+    apt:
+      force_apt_get: yes
+  tags: [base]
+
+- name: Ubuntu Desktop
+  hosts: all
+  become: yes
+  roles:
+    - role: ubuntu-desktop
+  tags: [ubuntu_desktop]
+
+- name: Serial
+  hosts: all
+  become: yes
+  roles:
+    - role: serial
+  tags: [serial]
+
+- name: SDK Manager
+  hosts: all
+  become: yes
+  roles:
+    - role: sdk-manager-install
+  tags: [sdk_manager_install]
+
+- name: L4T
+  hosts: all
+  become: yes
+  roles:
+    - role: l4t
+  tags: [l4t]
+
+- name: Toolchain
+  hosts: all
+  become: yes
+  roles:
+    - role: toolchain
+  tags: [toolchain]

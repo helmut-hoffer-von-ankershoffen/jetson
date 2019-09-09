@@ -1,0 +1,21 @@
+---
+
+- name: "Install rsync"
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - rsync
+
+- name: "Create /var/sdk-components"
+  file:
+    path: /var/sdk-components
+    state: directory
+
+- name: "Synchronize SDK components from workflow/guest/downloads to /var/sdk-components on Xavier device"
+  synchronize:
+    src: "{{ role_path }}/../../../guest/downloads/"
+    dest: /var/sdk-components
+    rsync_opts:
+      - "--include=*arm64.deb"
+      - "--exclude=*"

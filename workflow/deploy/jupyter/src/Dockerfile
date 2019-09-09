@@ -1,15 +1,11 @@
-ARG base=max-one.local:5001/jetson/ml-base
-FROM ${base}
+ARG FROM=max-one.local:5001/jetson/nano/ml-base
+FROM ${FROM}
 
 MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
 # Install Jupyter
 RUN conda install -y jupyter && \
     conda install -y ipywidgets
-RUN pip uninstall -y tornado && \
-    pip uninstall -y nbconvert
-RUN pip install tornado==4.2
-RUN pip install nbconvert==5.3.1
 
 # Install packages for data science
 RUN conda install -y seaborn
@@ -17,9 +13,9 @@ RUN conda install -y seaborn
 # Install Matlab clone Octave as alternative Jupyter kernel
 RUN apt-get update && \
     apt-get install -y \
+    gnuplot \
     octave \
     octave-optim \
-    gnuplot \
     && \
     apt-get clean
 RUN conda install -y octave_kernel && \

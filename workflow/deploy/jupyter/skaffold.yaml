@@ -5,7 +5,7 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: max-one.local:5001/jetson/jupyter
+  - image: max-one.local:5001/jetson/nano/jupyter
     custom:
       buildCommand: ../tools/builder jupyter
       dependencies:
@@ -20,13 +20,26 @@ deploy:
       global:
         - "--namespace=jetson-jupyter"
 profiles:
-- name: max
+- name: xavier
+  activation:
+    - env: JETSON_MODEL=xavier
   patches:
     - op: replace
+      path: /build/artifacts/0/image
+      value: max-one.local:5001/jetson/xavier/jupyter
+    - op: replace
+      path: /build/artifacts/0/custom/buildCommand
+      value: ../tools/builder jupyter xavier max-one.local:5001/jetson/xavier/ml-base
+    - op: replace
       path: /deploy/kustomize/path
-      value: kustomize/overlays/max
+      value: kustomize/overlays/xavier
 - name: docker-hub-parent
   patches:
     - op: replace
       path: /build/artifacts/0/custom/buildCommand
-      value: ../tools/builder jupyter helmuthva/jetson-ml-base
+      value: ../tools/builder jupyter nano helmuthva/jetson-nano-ml-base
+- name: docker-hub
+  patches:
+    - op: replace
+      path: /build/artifacts/0/image
+      value: helmuthva/jetson-nano-jupyter

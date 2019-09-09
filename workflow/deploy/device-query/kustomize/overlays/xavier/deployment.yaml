@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: device-query
+  namespace: jetson-device-query
+spec:
+  selector:
+    matchLabels:
+      app: device-query
+  template:
+    metadata:
+      name: device-query
+      labels:
+        app: device-query
+    spec:
+      containers:
+        - name: device-query
+          image: max-one.local:5001/jetson/xavier/device-query
+      nodeSelector:
+        jetson_model: "xavier"

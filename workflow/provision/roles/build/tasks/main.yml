@@ -22,7 +22,7 @@
     append: yes
     comment: 'managed by ansible'
 
-- name: "Upload authorized keys for shop user"
+- name: "Upload authorized keys for build user"
   authorized_key:
     user: 'build'
     key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"

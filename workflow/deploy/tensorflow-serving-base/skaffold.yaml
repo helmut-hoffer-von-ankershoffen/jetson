@@ -5,7 +5,7 @@ build:
   tagPolicy:
     sha256: {}
   artifacts:
-  - image: max-one.local:5001/jetson/tensorflow-serving-base
+  - image: max-one.local:5001/jetson/nano/tensorflow-serving-base
     custom:
       buildCommand: ../tools/builder tensorflow-serving-base
       dependencies:
@@ -13,3 +13,14 @@ build:
           - src
         ignore:
           - .gitignore
+profiles:
+  - name: xavier
+    activation:
+      - env: JETSON_MODEL=xavier
+    patches:
+      - op: replace
+        path: /build/artifacts/0/image
+        value: max-one.local:5001/jetson/xavier/tensorflow-serving-base
+      - op: replace
+        path: /build/artifacts/0/custom/buildCommand
+        value: ../tools/builder tensorflow-serving-base xavier max-one.local:5001/jetson/xavier/ml-base 9

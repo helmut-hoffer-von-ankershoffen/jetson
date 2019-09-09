@@ -15,4 +15,3 @@ spec:
     app: jupyter
   type: LoadBalancer
   loadBalancerIP: 12.0.0.208
-

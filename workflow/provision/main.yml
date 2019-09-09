@@ -7,6 +7,13 @@
     - role: access-secure
   tags: [access_secure]
 
+- name: Performance mode
+  hosts: all
+  become: yes
+  roles:
+    - role: performance-mode
+  tags: [provision,performance_mode]
+
 - name: Base
   hosts: all
   become: yes
@@ -15,11 +22,18 @@
   tags: [provision,base]
 
 - name: Kernel
-  hosts: all
+  hosts: nanos
   become: yes
   roles:
     - role: kernel
   tags: [provision,kernel]
+
+- name: SDK components installation
+  hosts: xaviers
+  become: yes
+  roles:
+    - role: sdk-components-install
+  tags: [provision,sdk_components_install]
 
 - name: LXDE
   hosts: all
@@ -40,7 +54,14 @@
   become: yes
   roles:
     - role: xrdp
-  tags: [optional,xrdp]
+  tags: [provision,xrdp]
+
+- name: Integrate M2/NVME SSD to provide /var/lib/docker
+  hosts: xaviers
+  become: yes
+  roles:
+    - role: nvme-ssd-integrate
+  tags: [provision,nvme_ssd_integrate]
 
 - name: Kubernetes
   hosts: all
@@ -63,15 +84,15 @@
     - role: test
   tags: [provision,test]
 
-- name: Performance mode
-  hosts: all
+- name: SDK components sync (optional)
+  hosts: xaviers
   become: yes
   roles:
-    - role: performance-mode
-  tags: [provision,performance_mode]
+    - role: sdk-components-sync
+  tags: [sdk_components_sync]
 
 - name: Swap (optional)
-  hosts: all
+  hosts: nanos
   become: yes
   roles:
     - role: swap
@@ -84,16 +105,16 @@
     - role: firewall
   tags: [firewall]
 
-- name: Prepare SSD for boot (optional)
-  hosts: all
+- name: Prepare USB3/SATA SSD for boot (optional)
+  hosts: nanos
   become: yes
   roles:
-    - role: ssd-prepare
-  tags: [ssd_prepare]
+    - role: sata-ssd-prepare
+  tags: [sata_ssd_prepare]
 
-- name: Activate SSD for boot (optional)
-  hosts: all
+- name: Activate USB3/SATA SSD for boot (optional)
+  hosts: nanos
   become: yes
   roles:
-    - role: ssd-activate
-  tags: [ssd_activate]
+    - role: sata-ssd-activate
+  tags: [sata_ssd_activate]

@@ -6,11 +6,18 @@ user=$2
 password=$3
 cd $(dirname "$0")/../$project
 
-## Publish latests Docker image available found on nano to Docker Hub
-ssh build@nano-one.local << EOF
+## Jetson model
+if [[ -z "${JETSON_MODEL}" ]]; then
+  JETSON_MODEL="nano"
+fi
+model=${4:-${JETSON_MODEL}}
+
+# Publish
+echo "Publish latest Docker image available found on ${model} to Docker Hub"
+ssh build@${model}-one.local << EOF
   echo "Logging in to Docker Hub as $user ..."
   docker login --username $user --password $password
-  echo "Publishing latest image of project $project to Docker Hub as $user/jetson-$project:latest ..."
-  docker tag $project $user/jetson-$project:latest
-  docker push $user/jetson-$project:latest
+  echo "Publishing latest image of project $project to Docker Hub as $user/jetson-$model-$project:latest ..."
+  docker tag $project $user/jetson-$model-$project:latest
+  docker push $user/jetson-$model-$project:latest
 EOF

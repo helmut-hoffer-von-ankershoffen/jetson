@@ -1,5 +1,5 @@
-ARG base=max-one.local:5001/jetson/tensorflow-serving-base
-FROM ${base}
+ARG FROM=max-one.local:5001/jetson/nano/tensorflow-serving-base
+FROM ${FROM}
 
 MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
@@ -25,9 +25,9 @@ COPY /models/testdata /testdata
 WORKDIR /
 
 # Expose ports
+# webservice
+EXPOSE 80
 # grpc
 EXPOSE 8500
 # rest
 EXPOSE 8501
-# webservice
-EXPOSE 80
