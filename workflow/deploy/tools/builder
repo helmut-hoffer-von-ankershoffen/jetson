@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Regular builder
+# Regular remote builder
 
 ## Project to build
 project=$1
@@ -20,16 +20,15 @@ shift; shift; shift
 options="$@"
 
 cd $(dirname "$0")/../$project
-echo "Building $IMAGES for project $project and Jetson model ${model} with FROM=from and $options ..."
+echo "Building $IMAGES for project $project and Jetson model $model with FROM=$from and $options ..."
 
 ## Sync src from development machine to device
-echo "Synching from development machine to ${model} for project $project ..."
+echo "Synching from development machine to build@${model}-one.local for project $project ..."
 rsync -rlptza --delete -P src/ build@${model}-one.local:~/$project
 
 ## Build Docker image on device
 ssh build@${model}-one.local << EOF
-  echo "Building Docker image on ${model} for project $project ..."
-  if [ -z "$2" ]; then
+  if [ -z "$from" ]; then
     echo "Executing on build@${model}-one.local: docker build -t $project ~/$project $options"
     docker build -t $project ~/$project $options
   else
@@ -47,6 +46,8 @@ do
         echo "Pushing $image for project $project..."
         ssh build@${model}-one.local "docker push $image"
     fi
+    # echo "Pulling $image on host ..."
+    # docker pull $image
 done
 
 echo "Building $IMAGES for project $project done."

@@ -1,6 +1,11 @@
 ARG FROM=max-one.local:5001/jetson/nano/ml-base
 FROM ${FROM}
 
+MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
+
+# Inc on updates of base image
+ENV BUMP=1
+
 # Number of parallel jobs when building TensorFlow serving
 ARG JOBS=1
 
@@ -8,10 +13,9 @@ ARG JOBS=1
 ARG TF_CUDA_COMPUTE_CAPABILITIES
 ENV TF_CUDA_COMPUTE_CAPABILITIES ${TF_CUDA_COMPUTE_CAPABILITIES:-5.3,6.2,7.2}
 
+# JETSON_MODEL used in .bazelrc
 ARG JETSON_MODEL
 ENV JETSON_MODEL ${JETSON_MODEL:-nano}
-
-MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
 # Install supervisord
 RUN apt-get update && \
@@ -104,5 +108,8 @@ COPY /etc/supervisor/conf.d /etc/supervisor/conf.d
 EXPOSE 8500
 # rest
 EXPOSE 8501
+
+RUN mkdir -p /meta && \
+    date +"%FT%T%Z" > /meta/tensorflow-serving-base.build
 
 CMD ["/usr/bin/supervisord"]

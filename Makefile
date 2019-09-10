@@ -227,7 +227,7 @@ ml-base-build-and-test: ## Build, push and test ml base image for Docker on Jets
 	workflow/deploy/tools/container-structure-test ml-base
 
 ml-base-publish: ## Publish latest ml base image on Jetson device to Docker Hub given credentials in .docker-hub.auth
-	workflow/deploy/tools/publish ml-base $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+	workflow/deploy/tools/publish ml-base $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth) $(filter-out $@,$(MAKECMDGOALS))
 
 
 device-query-build-and-test: ## Build and test device-query
@@ -258,7 +258,7 @@ device-query-dev-docker-hub-parent: ## Enter build, deploy, tail, watch cycle fo
 	cd workflow/deploy/device-query && skaffold dev -p docker-hub-parent
 
 device-query-publish: ## Publish latest device query image on Jetson device to Docker Hub given credentials in .docker-hub.auth
-	workflow/deploy/tools/publish device-query $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+	workflow/deploy/tools/publish device-query $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth) $(filter-out $@,$(MAKECMDGOALS))
 
 device-query-delete: ## Delete device query deployment
 	cd workflow/deploy/device-query && skaffold delete
@@ -298,7 +298,7 @@ jupyter-dev-docker-hub-parent: ## Enter build, deploy, tail, watch cycle for jup
 	cd workflow/deploy/jupyter && skaffold dev -p docker-hub-parent
 
 jupyter-publish: ## Publish latest jupyter image on Jetson device to Docker Hub given credentials in .docker-hub.auth
-	workflow/deploy/tools/publish jupyter $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+	workflow/deploy/tools/publish jupyter $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth) $(filter-out $@,$(MAKECMDGOALS))
 
 jupyter-delete: ## Delete jupyter deployment
 	cd workflow/deploy/jupyter && skaffold delete
@@ -311,7 +311,7 @@ tensorflow-serving-base-build-and-test: ## Build, push and test ml tensorflow-se
 	workflow/deploy/tools/container-structure-test tensorflow-serving-base
 
 tensorflow-serving-base-publish: ## Publish latest tensorflow-serving base image on Jetson device to Docker Hub given credentials in .docker-hub.auth
-	workflow/deploy/tools/publish tensorflow-serving-base $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+	workflow/deploy/tools/publish tensorflow-serving-base $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth) $(filter-out $@,$(MAKECMDGOALS))
 
 
 
@@ -368,7 +368,7 @@ tensorflow-serving-dev-docker-hub-parent: ## Enter build, deploy, tail, watch cy
 	cd workflow/deploy/jupyter && skaffold dev -p docker-hub-parent
 
 tensorflow-serving-publish: ## Publish latest tensorflow-serving image on Jetson device to Docker Hub given credentials in .docker-hub.auth
-	workflow/deploy/tools/publish tensorflow-serving $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+	workflow/deploy/tools/publish tensorflow-serving $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth) $(filter-out $@,$(MAKECMDGOALS))
 
 tensorflow-serving-delete: ## Delete tensorflow-serving deployment
 	cd workflow/deploy/tensorflow-serving && skaffold delete
@@ -394,20 +394,20 @@ l4t-dev: ## Enter cross-build, deploy, tail, watch cycle for l4t
 	cd workflow/deploy/l4t && skaffold dev
 
 l4t-publish: ## Publish latest lt4 image on Jetson device to Docker Hub given credentials in .docker-hub.auth
-	workflow/deploy/tools/publish l4t $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
+	workflow/deploy/tools/publish l4t $(shell sed '1q;d' .docker-hub.auth) $(shell sed '2q;d' .docker-hub.auth) $(filter-out $@,$(MAKECMDGOALS))
 
 l4t-delete: ## Delete l4t deployment
 	cd workflow/deploy/l4t && skaffold delete
 	kubectl delete namespace jetson-l4t || true
 
 publish-all: ## Publish all images to DockerHub
-	make ml-base-publish
-	make device-query-publish
-	make jupyter-publish
-	make tensorflow-serving-base-publish
-	make tensorflow-serving-publish
-	JETSON_MODEL=xavier make ml-base-publish
-	JETSON_MODEL=xavier make device-query-publish
-	JETSON_MODEL=xavier make jupyter-publish
-	JETSON_MODEL=xavier make tensorflow-serving-base-publish
-	JETSON_MODEL=xavier make tensorflow-serving-publish
+	JETSON_MODEL=nano make ml-base-publish $(filter-out $@,$(MAKECMDGOALS))
+	JETSON_MODEL=nano make device-query-publish $(filter-out $@,$(MAKECMDGOALS))
+	JETSON_MODEL=nano make jupyter-publish $(filter-out $@,$(MAKECMDGOALS))
+	JETSON_MODEL=nano make tensorflow-serving-base-publish $(filter-out $@,$(MAKECMDGOALS))
+	JETSON_MODEL=nano make tensorflow-serving-publish $(filter-out $@,$(MAKECMDGOALS))
+	JETSON_MODEL=xavier make ml-base-publish $(filter-out $@,$(MAKECMDGOALS))
+	JETSON_MODEL=xavier make device-query-publish $(filter-out $@,$(MAKECMDGOALS))
+	JETSON_MODEL=xavier make jupyter-publish $(filter-out $@,$(MAKECMDGOALS))
+	JETSON_MODEL=xavier make tensorflow-serving-base-publish $(filter-out $@,$(MAKECMDGOALS))
+	JETSON_MODEL=xavier make tensorflow-serving-publish $(filter-out $@,$(MAKECMDGOALS))

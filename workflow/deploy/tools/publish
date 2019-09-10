@@ -2,15 +2,22 @@
 
 ## Project to build
 project=$1
+
+# Login at DockerHub
 user=$2
 password=$3
-cd $(dirname "$0")/../$project
 
-## Jetson model
+# Jetson model
 if [[ -z "${JETSON_MODEL}" ]]; then
-  JETSON_MODEL="nano"
+  model="nano"
+else
+  model=${JETSON_MODEL}
 fi
-model=${4:-${JETSON_MODEL}}
+
+# Optional tag
+tag=$4
+
+cd $(dirname "$0")/../$project
 
 # Publish
 echo "Publish latest Docker image available found on ${model} to Docker Hub"
@@ -20,4 +27,9 @@ ssh build@${model}-one.local << EOF
   echo "Publishing latest image of project $project to Docker Hub as $user/jetson-$model-$project:latest ..."
   docker tag $project $user/jetson-$model-$project:latest
   docker push $user/jetson-$model-$project:latest
+  if [[ ! -z "${tag}" ]]; then
+    echo "Additionally publish with as $user/jetson-$model-$project:$tag ..."
+    docker tag $project $user/jetson-$model-$project:$tag
+    docker push $user/jetson-$model-$project:$tag
+  fi
 EOF

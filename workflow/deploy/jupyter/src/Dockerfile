@@ -3,6 +3,9 @@ FROM ${FROM}
 
 MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
+# Inc on updates of base image
+ENV BUMP=1
+
 # Install Jupyter
 RUN conda install -y jupyter && \
     conda install -y ipywidgets
@@ -30,3 +33,6 @@ CMD ["jupyter", "notebook", "--allow-root", "--no-browser" ]
 # Expose jupyter and tensorboard
 EXPOSE 8888
 EXPOSE 6006
+
+RUN mkdir -p /meta && \
+    date +"%FT%T%Z" > /meta/jupyter.build

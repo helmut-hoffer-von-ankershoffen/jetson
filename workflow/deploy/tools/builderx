@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Builder using buildx for bind-mounting during build
+# Remote builder using buildx for bind-mounting during build
 ## Project to build
 project=$1
 
@@ -15,10 +15,10 @@ shift; shift
 options="$@"
 
 cd $(dirname "$0")/../$project
-echo "Building $IMAGES for project $project and Jetson model ${model} ..."
+echo "Building $IMAGES for project $project and Jetson model $model ..."
 
 ## Sync src from development machine to device
-echo "Synching from development machine to ${model} for project $project ..."
+echo "Synching from development machine to build@${model}-one.local for project $project ..."
 rsync -rlptza --delete --exclude=host -P src/ build@${model}-one.local:~/$project
 
 ## Sync directories on host into Docker build context for later bind-mounting during build
@@ -72,4 +72,6 @@ do
         echo "Pushing $image for project $project..."
         ssh build@${model}-one.local "docker push $image"
     fi
+    # echo "Pulling $image on host ..."
+    # docker pull $image
 done

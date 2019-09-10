@@ -51,7 +51,7 @@ Hints:
 - [x] optional: Semi-automatically setup USB 3.0 / **SSD boot drive** given existing installation on micro SD card on Jetson Nanos
 - [ ] optional: Automatically **[cross-build](https://engineering.docker.com/2019/04/multi-arch-images/) arm64 Docker images on macOS** for Jetson devices using [**buildkit**](https://github.com/moby/buildkit) and [**buildx**](https://github.com/docker/buildx)
 - [ ] optional: Automatically setup **firewall** on host using [`ufw`](https://wiki.ubuntu.com/UncomplicatedFirewall) for basic security
-- [x] community: Publish images on [**Docker Hub**](https://hub.docker.com/u/helmuthva) and provide Skaffold profiles to pull from there instead of having to build before deploy
+- [x] community: Publish versioned images on [**Docker Hub**](https://hub.docker.com/u/helmuthva) per release and provide Skaffold profiles to pull from Docker Hub instead of having to build images before deploy in Kubernetes cluster
 - [ ] community: Author a series of **blog** posts explaining how to set up ML in Kubernetes on Jetson devices based on this starter
 - [ ] ml: Deploy **Polarize.AI** ml training and inference tiers on Jetson nodes (separate project)
 

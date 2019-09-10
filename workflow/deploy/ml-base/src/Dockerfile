@@ -6,6 +6,9 @@ MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 # Set non interactive frontend during build
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Simulate runlevel 1 needed on installing some packagess
+ENV RUNLEVEL=1
+
 #  Set locale and lang
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
@@ -22,7 +25,6 @@ ENV LD_LIBRARY_PATH="/usr/local/cuda-10.0/lib64:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/lib/:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/archiconda3/lib:${LD_LIBRARY_PATH}"
 
-#  
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
 # Setup capabilties for cuda
@@ -157,3 +159,6 @@ RUN pip install --no-cache-dir https://developer.download.nvidia.com/compute/red
 
 # Remove repository reference so child images do not have to bind-mount again
 RUN rm /etc/apt/sources.list.d/cuda.list
+
+RUN mkdir -p /meta && \
+    date +"%FT%T%Z" > /meta/ml-base.build
