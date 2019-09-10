@@ -10,8 +10,9 @@ if [[ -z "${JETSON_MODEL}" ]]; then
 fi
 model=${2:-${JETSON_MODEL}}
 
-## Concurrent Jobs
-jobs=${3:-1}
+## Options for docker build
+shift; shift
+options="$@"
 
 cd $(dirname "$0")/../$project
 echo "Building $IMAGES for project $project and Jetson model ${model} ..."
@@ -49,8 +50,8 @@ EOF
 
 ## Build Docker image on device - using buildkit with experimental features to be able to bind-mount in Dockerfile
 ssh build@${model}-one.local << EOF
-  echo "Building Docker image on ${model} for project $project ..."
-  DOCKER_BUILDKIT=1 docker build -t $project ~/$project --build-arg JOBS=$jobs
+  echo "Executing on build@${model}-one.local: DOCKER_BUILDKIT=1 docker build -t $project ~/$project $options"
+  DOCKER_BUILDKIT=1 docker build -t $project ~/$project $options
 EOF
 
 ## Reactivate original Docker configuration to allow pushing private Docker registry in cluster

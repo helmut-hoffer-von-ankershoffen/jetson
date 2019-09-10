@@ -308,7 +308,7 @@ jupyter-delete: ## Delete jupyter deployment
 
 tensorflow-serving-base-build-and-test: ## Build, push and test ml tensorflow-serving image for Docker on Jetson device extending ml-base with TensorFlow *Serving*
 	cd workflow/deploy/tensorflow-serving-base && skaffold build
-	workflow/deploy/tools/container-structure-test tensorflow-serving-baser
+	workflow/deploy/tools/container-structure-test tensorflow-serving-base
 
 tensorflow-serving-base-publish: ## Publish latest tensorflow-serving base image on Jetson device to Docker Hub given credentials in .docker-hub.auth
 	workflow/deploy/tools/publish tensorflow-serving-base $(shell sed '1q;d' .docker-hub.auth)  $(shell sed '2q;d' .docker-hub.auth)
@@ -399,3 +399,15 @@ l4t-publish: ## Publish latest lt4 image on Jetson device to Docker Hub given cr
 l4t-delete: ## Delete l4t deployment
 	cd workflow/deploy/l4t && skaffold delete
 	kubectl delete namespace jetson-l4t || true
+
+publish-all: ## Publish all images to DockerHub
+	make ml-base-publish
+	make device-query-publish
+	make jupyter-publish
+	make tensorflow-serving-base-publish
+	make tensorflow-serving-publish
+	JETSON_MODEL=xavier make ml-base-publish
+	JETSON_MODEL=xavier make device-query-publish
+	JETSON_MODEL=xavier make jupyter-publish
+	JETSON_MODEL=xavier make tensorflow-serving-base-publish
+	JETSON_MODEL=xavier make tensorflow-serving-publish

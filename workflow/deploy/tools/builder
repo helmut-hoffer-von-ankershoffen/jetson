@@ -14,11 +14,13 @@ model=${2:-${JETSON_MODEL}}
 ## Jetson model
 from=${3:-${FROM}}
 
-## Concurrent Jobs
-jobs=${4:-1}
+
+## Options for docker build
+shift; shift; shift
+options="$@"
 
 cd $(dirname "$0")/../$project
-echo "Building $IMAGES for project $project and Jetson model ${model} ..."
+echo "Building $IMAGES for project $project and Jetson model ${model} with FROM=from and $options ..."
 
 ## Sync src from development machine to device
 echo "Synching from development machine to ${model} for project $project ..."
@@ -28,11 +30,11 @@ rsync -rlptza --delete -P src/ build@${model}-one.local:~/$project
 ssh build@${model}-one.local << EOF
   echo "Building Docker image on ${model} for project $project ..."
   if [ -z "$2" ]; then
-    echo "Not overriding FROM ..."
-    docker build -t $project ~/$project
+    echo "Executing on build@${model}-one.local: docker build -t $project ~/$project $options"
+    docker build -t $project ~/$project $options
   else
-    echo "Using FROM $from as build argument ..."
-    docker build -t $project ~/$project --build-arg FROM=$from --build-arg JOBS=$jobs
+    echo "Executing on build@${model}-one.local: docker build -t $project ~/$project --build-arg FROM=$from $options"
+    docker build -t $project ~/$project --build-arg FROM=$from $options
   fi
 EOF
 
