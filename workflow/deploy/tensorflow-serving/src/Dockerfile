@@ -34,7 +34,7 @@ EXPOSE 8500
 EXPOSE 8501
 
 # Inc on updates of base image
-ENV BUMP=3
+ENV BUMP=5
 
 RUN mkdir -p /meta && \
     printf "Built on: %s\n" "$(hostname)" > /meta/tensorflow-serving.build && \

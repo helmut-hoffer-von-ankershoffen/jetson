@@ -350,6 +350,14 @@ tensorflow-serving-predict: ## Send prediction REST and webservice requests
 	@curl -d '{"instances": [1.0, 2.0, 5.0, 10.0]}' -X POST http://tensorflow-serving.local/api/v1/prediction/grpc/predict
 	@echo ""
 
+tensorflow-serving-predict-public: ## Send prediction REST and webservice requests to public endpoint
+	@echo "Predicting via Webservice API accessing REST endpoint of TFS ..."
+	@curl --user tensorflow-serving:secret -d '{"instances": [1.0, 2.0, 5.0, 10.0]}' -X POST https://tensorflow-serving.polarize.ai/api/v1/prediction/predict
+	@echo ""
+	@echo "Predicting via Webservice API accessing gRPC endpoint of TFS ..."
+	@curl --user tensorflow-serving:secret -d '{"instances": [1.0, 2.0, 5.0, 10.0]}' -X POST https://tensorflow-serving.polarize.ai/api/v1/prediction/grpc/predict
+	@echo ""
+
 tensorflow-serving-log-show: ## Show log of pod
 	workflow/deploy/tools/log-show tensorflow-serving
 

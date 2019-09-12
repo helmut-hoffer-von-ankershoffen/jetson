@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from .health import healthz
-from .prediction import rest, grpc
+from webservice.prediction import rest, grpc
 
 app = FastAPI(
     title = 'TensorFlow Serving webservice ',
