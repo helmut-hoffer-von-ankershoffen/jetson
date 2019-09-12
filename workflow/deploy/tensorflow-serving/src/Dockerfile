@@ -3,9 +3,6 @@ FROM ${FROM}
 
 MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
-# Inc on updates of base image
-ENV BUMP=1
-
 # Install application server
 RUN pip install \
     fastapi \
@@ -36,5 +33,10 @@ EXPOSE 8500
 # rest
 EXPOSE 8501
 
+# Inc on updates of base image
+ENV BUMP=3
+
 RUN mkdir -p /meta && \
-    date +"%FT%T%Z" > /meta/tensorflow-serving.build
+    printf "Built on: %s\n" "$(hostname)" > /meta/tensorflow-serving.build && \
+    printf "Build completed: %s\n" "$(date "+%FT%T.%3NZ")" >> /meta/tensorflow-serving.build && \
+    printf "Bump: %s\n" "${BUMP}" >> /meta/tensorflow-serving.build

@@ -152,6 +152,9 @@ provision-k8s: ## Provision Kubernetes on Jetson Nanos and Xaviers
 provision-build: ## Provision build environment on Jetson Nanos and Xaviers
 	cd workflow/provision && ansible-playbook main.yml --tags "build"
 
+provision-cuda-ml-repo: ## Repack CUDA ml libraries into CUDA ml repo residing in /var/local/cuda-ml-local-repo
+	cd workflow/provision && ansible-playbook main.yml --tags "cuda_ml_repo"
+
 provision-swap: ## Provision swap on Jetson Nanos
 	cd workflow/provision && ansible-playbook main.yml --tags "swap"
 
@@ -164,6 +167,7 @@ provision-test: ## Install tools for testing on Jetson Nanos and Xaviers
 provision-sdk-components-sync: ## Sync SDK components from workflow/guest/downloads to Xavier devices
 	cd workflow/provision && ansible-playbook main.yml --tags "sdk_components_sync"
 
+
 nano-one-ssh: ## ssh to nano-one as user provision
 	ssh provision@nano-one.local
 
@@ -175,9 +179,6 @@ nano-one-reboot: ## reboot nano-one
 
 nano-one-exec: ## exec command on nano-one - you must pass in arguments e.g. tegrastats
 	ssh build@nano-one.local $(filter-out $@,$(MAKECMDGOALS))
-
-nano-one-cuda-ml-deb-repack: ## Repack libcudnn and TensorRT libraries inc. python bindings on nano and create local repository
-	workflow/deploy/tools/cuda-ml-deb-repack
 
 
 nano-one-ssd-id-serial-short-show: ## Show short serial id of /dev/sda assuming the USB3/SSD is the only block device connected to the nano via USB
@@ -205,9 +206,6 @@ xavier-one-reboot: ## reboot xavier-one
 xavier-one-exec: ## exec command on xavier-one - you must pass in arguments e.g. tegrastats
 	ssh build@xavier-one.local $(filter-out $@,$(MAKECMDGOALS))
 
-xavier-one-cuda-ml-deb-repack: ## Repack libcudnn and TensorRT libraries inc. python bindings on xavier and create local repository
-	workflow/deploy/tools/cuda-ml-deb-repack xavier
-
 
 k8s-proxy: ## Open proxy
 	kubectl proxy
@@ -217,9 +215,6 @@ k8s-dashboard-bearer-token-show: ## Show dashboard bearer token
 
 k8s-dashboard-open: ## Open Dashboard
 	python -mwebbrowser http://localhost:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#!/overview?namespace=default
-
-k8s-token-create: ## Create token to join cluster
-	ssh root@max-one.local kubeadm token create
 
 
 ml-base-build-and-test: ## Build, push and test ml base image for Docker on Jetson device with cuda and tensorflow

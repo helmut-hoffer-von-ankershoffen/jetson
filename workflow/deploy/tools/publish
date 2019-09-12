@@ -20,7 +20,7 @@ tag=$4
 cd $(dirname "$0")/../$project
 
 # Publish
-echo "Publish latest Docker image available found on ${model} to Docker Hub"
+echo "Publish latest Docker image available found on build@${model}-one.local to Docker Hub for project $project ..."
 ssh build@${model}-one.local << EOF
   echo "Logging in to Docker Hub as $user ..."
   docker login --username $user --password $password

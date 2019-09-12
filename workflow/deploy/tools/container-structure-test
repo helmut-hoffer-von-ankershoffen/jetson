@@ -18,9 +18,10 @@ rsync -rlptza --delete -P src/ build@${model}-one.local:~/$project
 
 ## Execute container structure tests on device
 ssh build@${model}-one.local << EOF
-  echo "Executing container structure tests on ${model} for project $project ..."
+  echo "Executing container structure tests on build@${model}-one.local for project $project ..."
   cd $project
   for file in test/*.yaml; do
+    echo "Executing test/\${file##*/} ..."
     container-structure-test test --image $project --verbosity debug --config test/\${file##*/}
   done
 EOF

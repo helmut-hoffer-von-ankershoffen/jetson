@@ -114,7 +114,7 @@
     group: root
     mode: "0644"
 
-- name: "Join cluster"
+- name: "Join cluster with token {{ hostvars['localhost']['k8s_token'] }}"
   shell: kubeadm join --ignore-preflight-errors=all --config /etc/kubernetes/join.conf
   when: kubeadm_reset is succeeded
   register: kubeadm_join

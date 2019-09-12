@@ -3,9 +3,6 @@ FROM ${FROM}
 
 MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
-# Inc on updates of base image
-ENV BUMP=1
-
 # Number of parallel jobs when building TensorFlow serving
 ARG JOBS=1
 
@@ -109,7 +106,12 @@ EXPOSE 8500
 # rest
 EXPOSE 8501
 
-RUN mkdir -p /meta && \
-    date +"%FT%T%Z" > /meta/tensorflow-serving-base.build
-
 CMD ["/usr/bin/supervisord"]
+
+# Inc on updates of base image
+ENV BUMP=3
+
+RUN mkdir -p /meta && \
+    printf "Built on: %s\n" "$(hostname)" > /meta/tensorflow-serving-base.build && \
+    printf "Build completed: %s\n" "$(date "+%FT%T.%3NZ")" >> /meta/tensorflow-serving-base.build && \
+    printf "Bump: %s\n" "${BUMP}" >> /meta/tensorflow-serving-base.build

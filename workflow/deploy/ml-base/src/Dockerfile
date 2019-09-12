@@ -14,7 +14,7 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
 # Set local timezone
-ENV TZ=Europe/Berliln
+ENV TZ=Europe/Berlin
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Setup search path for shared libraries
@@ -160,5 +160,10 @@ RUN pip install --no-cache-dir https://developer.download.nvidia.com/compute/red
 # Remove repository reference so child images do not have to bind-mount again
 RUN rm /etc/apt/sources.list.d/cuda.list
 
+# Inc to update
+ENV BUMP=3
+
 RUN mkdir -p /meta && \
-    date +"%FT%T%Z" > /meta/ml-base.build
+    printf "Built on: %s\n" "$(hostname)" > /meta/ml-base.build && \
+    printf "Build completed: %s\n" "$(date "+%FT%T.%3NZ")" >> /meta/ml-base.build && \
+    printf "Bump: %s\n" "${BUMP}" >> /meta/ml-base.build

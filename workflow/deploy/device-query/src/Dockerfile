@@ -3,8 +3,6 @@ FROM ${FROM}
 
 MAINTAINER Helmut Hoffer von Ankershoffen <helmuthva@googlemail.com>
 
-# Inc on updates of base image
-ENV BUMP=1
 
 # Build and install device query
 RUN cd /usr/local/cuda/samples/1_Utilities/deviceQuery && \
@@ -16,5 +14,10 @@ RUN cd /usr/local/cuda/samples/1_Utilities/deviceQuery && \
 # Execute deviceQuery to validate cuda and driver access on boot than sleep
 CMD exec /bin/bash -c "trap : TERM INT; /app/deviceQuery; echo \"Sleeping until terminated so you can see the log - press ctrl+c...\"; sleep infinity & wait"
 
+# Inc on updates of base image
+ENV BUMP=3
+
 RUN mkdir -p /meta && \
-    date +"%FT%T%Z" > /meta/device-query.build
+    printf "Built on: %s\n" "$(hostname)" > /meta/device-query.build && \
+    printf "Build completed: %s\n" "$(date "+%FT%T.%3NZ")" >> /meta/device-query.build && \
+    printf "Bump: %s\n" "${BUMP}" >> /meta/device-query.build

@@ -63,12 +63,20 @@
     - role: nvme-ssd-integrate
   tags: [provision,nvme_ssd_integrate]
 
+- name: Create Kubernetes token for joining cluster
+  hosts: localhost
+  connection: localhost
+  gather_facts: no
+  roles:
+    - role: k8s-token-create
+  tags: [provision,k8s,k8s_token_create]
+
 - name: Kubernetes
   hosts: all
   become: yes
   roles:
-    - role: k8s
-  tags: [provision,k8s]
+    - role: k8s-setup-and-join
+  tags: [provision,k8s,k8s_setup_and_join]
 
 - name: Build
   hosts: all
@@ -76,6 +84,13 @@
   roles:
     - role: build
   tags: [provision,build]
+
+- name: Create CUDA ml repo
+  hosts: all
+  become: yes
+  roles:
+    - role: cuda-ml-repo
+  tags: [provision,cuda_ml_repo]
 
 - name: Test
   hosts: all

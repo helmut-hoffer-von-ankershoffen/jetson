@@ -1,0 +1,14 @@
+---
+
+- name: "Create Kubernetes token on master for later joining by nodes"
+  shell: |
+    ssh {{ kubernetes.master_ssh }} kubeadm token create
+  register: k8s_token_create
+
+- name: "Extract token"
+  set_fact:
+    k8s_token: "{{ k8s_token_create.stdout }}"
+
+- name: "Created token {{ k8s_token }}"
+  debug:
+    var: k8s_token

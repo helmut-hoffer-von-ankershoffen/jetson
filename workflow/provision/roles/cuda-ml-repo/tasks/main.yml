@@ -1,0 +1,18 @@
+---
+
+- name: "Remove CUDA ml repo if existing"
+  file:
+    path: /var/cuda-ml-local-repo
+    state: absent
+    mode:  '755'
+
+- name: "Create directory /var/cuda-ml-local-repo for CUDA ml repo"
+  file:
+    path: /var/cuda-ml-local-repo
+    state: directory
+    mode:  '755'
+
+- name: "Repack cuda-ml libraries into CUDA ml repo"
+  shell: |
+    cd /var/cuda-ml-local-repo/
+    dpkg-repack $(dpkg -l | grep cuda10 | awk '{print $2}' | tr '\n' ' ')

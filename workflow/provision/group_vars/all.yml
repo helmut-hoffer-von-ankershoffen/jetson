@@ -7,7 +7,7 @@ vnc:
   password: secret
 
 kubernetes:
-  token: qkgz48.rg7vw1lg057hoje3
+  master_ssh: root@max-one.local
   podnet: 10.244.0.0/16
   version: "v1.14.2"
   package_version: "1.14.2-00"
