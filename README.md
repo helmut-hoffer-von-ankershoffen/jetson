@@ -2,6 +2,8 @@
 
 `Experimenting` with [**arm64**](https://en.wikipedia.org/wiki/ARM_architecture) based [**NVIDIA Jetson**](https://www.nvidia.com/de-de/autonomous-machines/embedded-systems/) (Nano and AGX Xavier) [edge devices](https://www.networkworld.com/article/3224893/what-is-edge-computing-and-how-it-s-changing-the-network.html) running [**Kubernetes**](http://kubernetes.org/) (K8s) for [**machine learning**](https://see.stanford.edu/Course/CS229) (ML) including [Jupyter Notebooks](https://jupyter.org/), [TensorFlow Training](https://www.tensorflow.org/) and [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving) using [CUDA](https://de.wikipedia.org/wiki/CUDA) for [**smart IoT**](https://www.mdpi.com/2504-2289/2/3/26/htm).
 
+Author: [**Helmut Hoffer von Ankershoffen né Oertel**](https://helmut.hoffer-von-ankershoffen.me/)
+
 Hints:
 - Assumes an **NVIDIA Jetson [Nano](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-nano/), TX1, TX2 or [AGX Xavier](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-agx-xavier/)** as edge device.
 - Assumes a **macOS workstation for development** such as [MacBook Pro](https://www.apple.com/mac/)
